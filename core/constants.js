@@ -9,6 +9,15 @@ export const STORAGE_KEYS = {
   FULL_STATE: "shift_scheduler_full_state_v5",
 };
 
+export const RULES = {
+  MIN_REQUIRED: 3,
+  MAX_ALLOWED: 5,
+  MAX_NIGHT_2_6: 2,
+};
+
+export const SHEET_URL =
+  "https://docs.google.com/spreadsheets/d/1NXgjKC-0j4blUQawwzz4lMEhswA561GKxAoSJO5ie_s/edit?gid=0#gid=0";
+
 export const SHIFT_INDEX = Object.freeze({
   NIGHT_2_6: 0,
   MORNING_6_10: 1,
@@ -39,15 +48,6 @@ export const TIME_SLOTS = [
 
 export const SLOT_ICONS = ["🦉", "🥱", "☕", "🍔", "😵‍💫", "😴"];
 
-export const RULES = {
-  MIN_REQUIRED: 3,
-  MAX_ALLOWED: 5,
-  MAX_NIGHT_2_6: 2,
-};
-
-export const SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1NXgjKC-0j4blUQawwzz4lMEhswA561GKxAoSJO5ie_s/edit?gid=0#gid=0";
-
 export const COLOR_MAP = {
   "אמיר": "color-אמיר",
   "נמרוד": "color-נמרוד",
@@ -72,4 +72,3 @@ export const COLOR_MAP = {
   "חברוני": "color-חברוני",
   "ויקטור": "color-ויקטור",
 };
-
