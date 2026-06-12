@@ -1,28 +1,19 @@
-#ui/excel-grid-view.js
-import { TIME_SLOTS, HEB_DAYS } from "../core/constants.js";
+export function renderExcelGrid(app) {
+  const table = app.el["excel-grid"];
+  const dayShort = app.state.expectedDays.map((day) => day.replace("יום ", ""));
+  let html = "<thead><tr><th>שעות / יום</th>";
+  dayShort.forEach((day) => { html += `<th>${app.escapeHtml(day)}</th>`; });
+  html += "</tr></thead><tbody>";
 
-export function renderGrid(matrix) {
-  const container = document.getElementById("excel-grid");
-
-  let html = "<table>";
-
-  html += "<tr><th>שעה</th>";
-  HEB_DAYS.forEach(d => html += `<th>${d}</th>`);
-  html += "</tr>";
-
-  TIME_SLOTS.forEach((slot, r) => {
-    html += `<tr><td>${slot}</td>`;
-    HEB_DAYS.forEach((_, c) => {
-      html += `
-        <td contenteditable="plaintext-only" data-r="${r}" data-c="${c}">
-          ${matrix[r][c] || ""}
-        </td>
-      `;
+  app.C.TIME_SLOTS.forEach((slot, r) => {
+    const time = slot.split("(")[0].trim();
+    html += `<tr><td>${app.escapeHtml(time)}</td>`;
+    app.state.expectedDays.forEach((_, c) => {
+      html += `<td class="cell" contenteditable="plaintext-only" data-r="${r}" data-c="${c}">${app.escapeHtml(app.state.excelMatrix[r]?.[c] || "")}</td>`;
     });
     html += "</tr>";
   });
 
-  html += "</table>";
-
-  container.innerHTML = html;
+  html += "</tbody>";
+  table.innerHTML = html;
 }
