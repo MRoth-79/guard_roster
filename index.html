@@ -1,17 +1,151 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
-
+<html lang="he" dir="rtl" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <title>Shift Scheduler</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>מנתח טבלת משמרות 📅</title>
+  <style>
+:root { --artifact-background:#ffffff; --artifact-background-light:#f6f6f6; --artifact-background-mid:#f0f0f0; --artifact-border-light:#e5e5e5; --artifact-border-dark:#cfcfcf; --artifact-text-primary:#1b1b1b; --artifact-text-secondary:#727272; --artifact-page:#f6f6f6; --artifact-surface:#ffffff; --artifact-surface-muted:#f0f0f0; --artifact-accent:#0f766e; --artifact-accent-text:#ffffff; --artifact-accent-2:#99f6e4; --artifact-accent-2-text:#134e4a; --artifact-info:#2563eb; --artifact-info-soft:#eaf1ff; --artifact-success:#16a34a; --artifact-success-soft:#eaf8ef; --artifact-warning:#ea580c; --artifact-warning-soft:#fff3e8; --artifact-danger:#dc2626; --artifact-danger-soft:#fdecec; --artifact-fair:#7c3aed; --artifact-fair-soft-2:#faf5ff; --artifact-weekend-bg:#ffd9c5; --artifact-weekend-text:#7a3e1d; --artifact-unknown-bg:#fff8e1; --artifact-unknown-text:#5d4037; --artifact-leave-bg:#eceff1; --artifact-leave-text:#607d8b; --artifact-guard-bg:#e0f7fa; --artifact-guard-text:#006064; --artifact-guard-active-bg:#fffbeb; --artifact-guard-active-text:#92400e; --artifact-shadow:0 10px 24px rgba(15,23,42,.08); --artifact-shadow-soft:0 4px 12px rgba(15,23,42,.06); --artifact-person-dim:.22; --artifact-radius:18px; --artifact-max-width:1540px; --artifact-time-col-width:120px; --artifact-table-min-width:1100px; --person-אמיר-bg:linear-gradient(135deg,#3b82f6,#2563eb); --person-אמיר-text:#fff; --person-נמרוד-bg:linear-gradient(135deg,#22d3ee,#0891b2); --person-נמרוד-text:#083344; --person-יובי-bg:linear-gradient(135deg,#fbbf24,#f59e0b); --person-יובי-text:#422006; --person-טגניה-bg:linear-gradient(135deg,#34d399,#10b981); --person-טגניה-text:#052e16; --person-ישי-bg:linear-gradient(135deg,#a78bfa,#7c3aed); --person-ישי-text:#fff; --person-גולן-bg:linear-gradient(135deg,#eab308,#ca8a04); --person-גולן-text:#fff; --person-חסון-bg:linear-gradient(135deg,#60a5fa,#1d4ed8); --person-חסון-text:#fff; --person-לישע-bg:linear-gradient(135deg,#a3e635,#65a30d); --person-לישע-text:#243a0a; --person-עידן-bg:linear-gradient(135deg,#f472b6,#db2777); --person-עידן-text:#fff; --person-חגי-bg:linear-gradient(135deg,#fb7185,#e11d48); --person-חגי-text:#fff; --person-סתיו-bg:linear-gradient(135deg,#fde047,#facc15); --person-סתיו-text:#3f3200; --person-אסף-bg:linear-gradient(135deg,#ef4444,#b91c1c); --person-אסף-text:#fff; --person-ליאני-bg:linear-gradient(135deg,#8b5cf6,#4c1d95); --person-ליאני-text:#fff; --person-נתי-bg:linear-gradient(135deg,#38bdf8,#0284c7); --person-נתי-text:#fff; --person-ערן-bg:linear-gradient(135deg,#94a3b8,#64748b); --person-ערן-text:#fff; --person-מאור-bg:linear-gradient(135deg,#fef3c7,#fde68a); --person-מאור-text:#1f2937; --person-ניר-bg:linear-gradient(135deg,#fb7185,#ef4444); --person-ניר-text:#fff; --person-חורחה-bg:linear-gradient(135deg,#f9a8d4,#ec4899); --person-חורחה-text:#500724; --person-שלומי-bg:linear-gradient(135deg,#a16207,#78350f); --person-שלומי-text:#fff; --person-יפתח-bg:linear-gradient(135deg,#d9f99d,#84cc16); --person-יפתח-text:#365314; --person-חברוני-bg:linear-gradient(135deg,#2dd4bf,#0f766e); --person-חברוני-text:#e6fffb; --person-ויקטור-bg:linear-gradient(135deg,#fdba74,#f97316); --person-ויקטור-text:#4a1d00; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,.08)} html,body{margin:0;min-height:100dvh;background:var(--artifact-page);color:var(--artifact-text-primary);font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;-webkit-text-size-adjust:100%;overflow-x:hidden} body{padding:14px}.app-shell{max-width:var(--artifact-max-width);margin:0 auto}.hero{width:fit-content;margin:12px auto 22px;padding:16px 28px;border-radius:999px;background:var(--artifact-surface);color:var(--artifact-accent);border:1px solid var(--artifact-border-light);box-shadow:var(--artifact-shadow);font-size:clamp(1.45rem,2vw,2.2rem);font-weight:800;text-align:center}.card{background:var(--artifact-surface);color:var(--artifact-text-primary);border:1px solid var(--artifact-border-light);border-radius:var(--artifact-radius);box-shadow:var(--artifact-shadow-soft);padding:16px;margin-bottom:16px}.section-title{margin:0 0 12px;font-size:1.12rem;font-weight:800;color:var(--artifact-accent);text-align:center}.subtle{margin:6px 0 0;color:var(--artifact-text-secondary);font-size:.94rem;text-align:center}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.row.center{justify-content:center}.row.between{justify-content:space-between}.label-strong{font-weight:800}.input,.select,.date-input{background:var(--artifact-surface);color:var(--artifact-text-primary);border:1px solid var(--artifact-border-dark);border-radius:12px;padding:10px 12px;font-size:14px;outline:none;min-height:44px}.url-input{direction:ltr;text-align:left;flex:1 1 420px}.btn{appearance:none;border:none;border-radius:12px;min-height:44px;padding:10px 16px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:var(--artifact-shadow-soft)} .btn-primary{background:var(--artifact-info);color:#fff}.btn-success{background:var(--artifact-success);color:#fff}.btn-danger{background:var(--artifact-danger);color:#fff}.btn-neutral{background:var(--artifact-background-mid);color:var(--artifact-text-primary)} .toolbar{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px;margin-top:10px}.tool-btn{min-height:96px;border-radius:16px;color:#fff;font-weight:900;font-size:15px;border:none;cursor:pointer;box-shadow:var(--artifact-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}.tool-btn .icon{font-size:28px;line-height:1}.tool-fetch{background:linear-gradient(135deg,#00d2ff,#3a7bd5)}.tool-ai{background:linear-gradient(135deg,#667eea,#764ba2)}.tool-analyze{background:linear-gradient(135deg,#00b09b,#96c93d)}.tool-download{background:linear-gradient(135deg,#0ea5e9,#0284c7)}.tool-sheet{background:linear-gradient(135deg,#22c55e,#16a34a)}.tool-fair{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}.grid-wrap,.fairness-table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface)} .mode-bar,.url-toggle-row{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.url-input-wrap{display:none;flex:1 1 100%}.url-input-wrap.open{display:flex} table{width:100%;border-collapse:separate;border-spacing:0}.excel-grid{min-width:780px;table-layout:fixed;background:var(--artifact-surface)}.excel-grid thead th{position:sticky;top:0;z-index:2;background:var(--artifact-accent);color:var(--artifact-accent-text);padding:10px 8px;font-size:.94rem;border-bottom:2px solid var(--artifact-border-dark)}.excel-grid th,.excel-grid td{border-right:1px solid var(--artifact-border-light);border-bottom:1px solid var(--artifact-border-light);padding:8px;vertical-align:middle;background:var(--artifact-surface);color:var(--artifact-text-primary)}.excel-grid tbody td:first-child{position:sticky;inset-inline-start:0;z-index:1;background:#f8fbff;font-weight:800;width:120px}.excel-grid td.cell{min-height:46px;outline:none;cursor:text;white-space:normal;word-break:break-word}.excel-grid td.cell:focus{background:var(--artifact-info-soft);color:#12306b;box-shadow:inset 0 0 0 2px rgba(37,99,235,.26)}.excel-grid td.cell.has-unknown{background:var(--artifact-unknown-bg);color:var(--artifact-unknown-text)}.excel-grid td.cell.on-leave-cell{background:var(--artifact-leave-bg);color:var(--artifact-leave-text)}.guard-grid{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));gap:8px}.guard-btn{min-height:44px;border-radius:10px;border:1px solid var(--artifact-border-light);background:var(--artifact-guard-bg);color:var(--artifact-guard-text);font-size:15px;font-weight:700;cursor:pointer;padding:8px}.guard-btn.active{background:var(--artifact-guard-active-bg);color:var(--artifact-guard-active-text);box-shadow:0 0 0 3px rgba(252,211,77,.22)}.collapsible{display:none;margin-top:12px}.req-grid{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}.req-label,.req-control{border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface);padding:10px}.req-label{font-weight:800;background:#eef8f7}.req-control{display:flex;gap:8px;align-items:center;justify-content:flex-end}.req-opt{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:36px;padding:6px 10px;border-radius:10px;border:1px solid var(--artifact-border-dark);background:var(--artifact-surface);cursor:pointer;font-weight:800}.req-opt.active{background:var(--artifact-success-soft);color:#1b5e20}.list{display:grid;gap:8px;margin-top:12px}.list-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px;border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface)}.muted{color:var(--artifact-text-secondary);font-size:.92rem}.status-banner{display:none;margin-top:12px;border-radius:12px;padding:12px 14px;text-align:center;font-weight:800;box-shadow:var(--artifact-shadow-soft)}.status-banner.success{background:var(--artifact-success);color:#fff}.status-banner.warning{background:var(--artifact-warning);color:#fff}.status-banner.error{background:var(--artifact-danger);color:#fff}.results-shell{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;text-align:center}.results-shell h3{margin:18px 0 10px;color:var(--artifact-accent)}.results-info{color:var(--artifact-accent);font-weight:700;margin-bottom:14px}.summary-bar,.fairness-summary{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;margin:0 0 16px}.summary-card,.fairness-card{background:var(--artifact-surface);border:1px solid var(--artifact-border-light);border-radius:14px;padding:12px;text-align:center;box-shadow:var(--artifact-shadow-soft)}.summary-card .label,.fairness-card .label{display:block;font-size:.86rem;color:var(--artifact-text-secondary);margin-bottom:4px}.summary-card .value,.fairness-card .value{display:block;font-size:1.45rem;font-weight:900}.summary-card.is-empty{background:var(--artifact-warning-soft)}.summary-card.is-exceptions{background:var(--artifact-danger-soft)}.summary-card.is-under{background:var(--artifact-info-soft)}.summary-card.is-nights{background:var(--artifact-success-soft)}.undo-search-bar{display:grid;grid-template-columns:1.3fr auto auto auto auto auto;gap:10px;margin-top:12px;align-items:center}.search-status{font-size:.9rem;color:var(--artifact-text-secondary);text-align:center;min-width:80px}.fairness-panel{display:none;margin-top:12px;border:1px solid var(--artifact-border-light);background:linear-gradient(180deg,var(--artifact-fair-soft-2),var(--artifact-surface))}.fairness-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start}.fairness-section{background:var(--artifact-surface);border:1px solid var(--artifact-border-light);border-radius:14px;padding:14px;box-shadow:var(--artifact-shadow-soft)}.fairness-section h3{margin:0 0 10px;color:var(--artifact-fair);font-size:1rem;text-align:center}.fairness-table{width:100%;border-collapse:collapse;min-width:760px;background:var(--artifact-surface)}.fairness-table th,.fairness-table td{border-bottom:1px solid var(--artifact-border-light);border-left:1px solid var(--artifact-border-light);padding:10px 8px;vertical-align:top;text-align:center}.fairness-table thead th{position:sticky;top:0;z-index:1;background:var(--artifact-fair);color:#fff}.reason-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;text-align:right}.reason-list li{background:var(--artifact-background-light);border:1px solid var(--artifact-border-light);border-radius:10px;padding:6px 8px;font-size:.9rem}.pill{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:4px 10px;border-radius:999px;font-size:.8rem;font-weight:800;border:1px solid transparent;white-space:nowrap}.pill.ok{background:var(--artifact-success-soft);color:#166534}.pill.warn{background:var(--artifact-warning-soft);color:#9a3412}.pill.bad{background:var(--artifact-danger-soft);color:#991b1b}.empty-state{padding:18px 12px;text-align:center;color:var(--artifact-text-secondary)}.schedule-table{width:100%;min-width:var(--artifact-table-min-width);table-layout:fixed;border-collapse:collapse;background:var(--artifact-surface);color:var(--artifact-text-primary);border:2px solid var(--artifact-border-dark);border-radius:14px;overflow:hidden;box-shadow:var(--artifact-shadow-soft)}.schedule-table col.time-col{width:var(--artifact-time-col-width)}.schedule-table th,.schedule-table td{border:1px solid var(--artifact-border-dark);padding:8px 6px;min-height:52px;vertical-align:top;overflow:hidden}.schedule-table thead{background:var(--artifact-accent);color:var(--artifact-accent-text)}.schedule-table thead th{position:sticky;top:0;z-index:2;padding:6px 6px;text-align:center}.schedule-table thead th[rowspan="2"]{font-size:.96rem;line-height:1.1;white-space:normal;vertical-align:middle;width:var(--artifact-time-col-width)}.schedule-table td.editing-cell{background:#fff8e1!important;color:#5d4037!important;outline:2px dashed var(--artifact-warning);outline-offset:-2px}.time-slot{background:var(--artifact-accent-2)!important;color:var(--artifact-accent-2-text)!important;font-size:.96rem;font-weight:800;text-align:center;vertical-align:middle!important;line-height:1.1;direction:ltr;width:var(--artifact-time-col-width);min-width:var(--artifact-time-col-width);max-width:var(--artifact-time-col-width);padding:10px 4px!important}.time-slot-wrap{display:flex;flex-direction:column;align-items:center;gap:5px}.time-slot-icon{font-size:1.15rem;line-height:1}.friday-col,.saturday-col{background:var(--artifact-weekend-bg)!important;color:var(--artifact-weekend-text)!important}.day-header-name{display:block;font-size:1.02rem;font-weight:800;margin:2px 0;line-height:1.1}.date-text{display:block;font-size:.9rem;font-weight:700;opacity:.96;line-height:1.05}.cell-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}.badge{display:inline-flex;align-items:center;justify-content:center;min-height:22px;padding:2px 8px;border-radius:999px;font-size:.74rem;font-weight:800;border:1px solid transparent;white-space:nowrap}.badge.empty,.badge.short{background:var(--artifact-warning-soft);color:#8a3d08}.badge.extra{background:var(--artifact-info-soft);color:#12306b}.badge.rest{background:var(--artifact-danger-soft);color:#8f1f1f}.badge.leave{background:#eef2f7;color:#475569}.person{display:block;width:fit-content;max-width:100%;margin:6px auto;padding:10px 18px;border-radius:999px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(1.08em,1vw + .96em,1.34em);line-height:1.08;font-weight:800;letter-spacing:.18px;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 6px rgba(0,0,0,.10);text-shadow:0 1px 0 rgba(0,0,0,.08);user-select:none;cursor:pointer;background:var(--artifact-surface-muted);color:var(--artifact-text-primary)}.person.highlight-name{position:relative;z-index:2;opacity:1!important;filter:none!important;transform:scale(1.03);box-shadow:0 0 0 3px rgba(255,255,255,.82),0 0 0 6px rgba(15,118,110,.24),0 10px 18px rgba(0,0,0,.18)}.spotlight-active .person:not(.highlight-name){opacity:var(--artifact-person-dim);filter:grayscale(55%) saturate(75%)}.person.search-match{box-shadow:0 0 0 3px rgba(255,255,255,.82),0 0 0 6px rgba(37,99,235,.28),0 10px 18px rgba(0,0,0,.18)}.person.search-current{transform:scale(1.05);box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 0 7px rgba(234,88,12,.35),0 12px 22px rgba(0,0,0,.22)}.person.unknown-name{background:var(--artifact-unknown-bg);color:var(--artifact-unknown-text);border-style:dashed}.person.on-leave{background:var(--artifact-leave-bg)!important;color:var(--artifact-leave-text)!important;border-style:dashed!important;text-decoration:line-through}.person.on-leave::after{content:" ⛱️"}.person.color-אמיר{background:var(--person-אמיר-bg);color:var(--person-אמיר-text)}.person.color-נמרוד{background:var(--person-נמרוד-bg);color:var(--person-נמרוד-text)}.person.color-יובי{background:var(--person-יובי-bg);color:var(--person-יובי-text)}.person.color-טגניה{background:var(--person-טגניה-bg);color:var(--person-טגניה-text)}.person.color-ישי{background:var(--person-ישי-bg);color:var(--person-ישי-text)}.person.color-גולן{background:var(--person-גולן-bg);color:var(--person-גולן-text)}.person.color-חסון{background:var(--person-חסון-bg);color:var(--person-חסון-text)}.person.color-לישע{background:var(--person-לישע-bg);color:var(--person-לישע-text)}.person.color-עידן{background:var(--person-עידן-bg);color:var(--person-עידן-text)}.person.color-חגי{background:var(--person-חגי-bg);color:var(--person-חגי-text)}.person.color-סתיו{background:var(--person-סתיו-bg);color:var(--person-סתיו-text)}.person.color-אסף{background:var(--person-אסף-bg);color:var(--person-אסף-text)}.person.color-ליאני{background:var(--person-ליאני-bg);color:var(--person-ליאני-text)}.person.color-נתי{background:var(--person-נתי-bg);color:var(--person-נתי-text)}.person.color-ערן{background:var(--person-ערן-bg);color:var(--person-ערן-text)}.person.color-מאור{background:var(--person-מאור-bg);color:var(--person-מאור-text)}.person.color-ניר{background:var(--person-ניר-bg);color:var(--person-ניר-text)}.person.color-חורחה{background:var(--person-חורחה-bg);color:var(--person-חורחה-text)}.person.color-שלומי{background:var(--person-שלומי-bg);color:var(--person-שלומי-text)}.person.color-יפתח{background:var(--person-יפתח-bg);color:var(--person-יפתח-text)}.person.color-חברוני{background:var(--person-חברוני-bg);color:var(--person-חברוני-text)}.person.color-ויקטור{background:var(--person-ויקטור-bg);color:var(--person-ויקטור-text)}.summary-table,.exceptions-table{width:min(1200px,100%);margin:24px auto;border-collapse:separate;border-spacing:0;background:var(--artifact-surface);border:1px solid var(--artifact-border-light);border-radius:14px;overflow:hidden;box-shadow:var(--artifact-shadow-soft)}.summary-table thead{background:var(--artifact-accent);color:#fff}.exceptions-table thead{background:var(--artifact-danger);color:#fff}.summary-table th,.summary-table td,.exceptions-table th,.exceptions-table td{padding:14px 10px;text-align:center;border-bottom:1px solid var(--artifact-border-light)}.shifts-5-count{background:var(--artifact-info-soft);color:#12306b;font-weight:800}.shifts-4-count{background:var(--artifact-success-soft);color:#1b5e20;font-weight:800}.shifts-3-count{background:#e8f5e9;color:#1b5e20;font-weight:800}.low-shifts{background:var(--artifact-danger-soft);color:#8f1f1f;font-weight:800}.night-limit-fail-row{background:var(--artifact-danger-soft);color:#8f1f1f}.night-limit-ok{color:var(--artifact-success);font-weight:800}.night-limit-fail{color:var(--artifact-danger);font-weight:800} @media (max-width:1280px){.toolbar{grid-template-columns:repeat(3,minmax(120px,1fr))}.summary-bar,.fairness-summary{grid-template-columns:repeat(2,minmax(160px,1fr))}.fairness-layout{grid-template-columns:1fr}.undo-search-bar{grid-template-columns:1fr 1fr 1fr}} @media (max-width:768px){body{padding:10px}.toolbar,.req-grid,.summary-bar,.fairness-summary,.undo-search-bar{grid-template-columns:1fr}.guard-grid{grid-template-columns:repeat(2,minmax(110px,1fr))}.schedule-table{min-width:900px}.fairness-table{min-width:620px}}
+</style>
 </head>
-
 <body>
+  <div class="app-shell">
+    <div class="hero">מנתח טבלת משמרות 📅</div>
 
-  <div id="app"></div>
+    <section class="card">
+      <h2 class="section-title">נתוני משמרות לעריכה ומקור הנתונים 📝</h2>
 
-  <script type="module" src="main.js"></script>
+      <div class="card">
+        <div class="row between">
+          <div class="label-strong">טבלת קלט (הדבקה ישירה)</div>
+          <div class="row mobile-inline">
+            <label for="startDate" id="startDateLabel" class="label-strong">תאריך תחילת שבוע:</label>
+            <input type="date" id="startDate" class="date-input" />
+          </div>
+          <div class="row mobile-inline">
+            <button id="btnExcelAuto" type="button" class="btn btn-primary">סדר אוטומטי ↻</button>
+            <button id="btnExcelClear" type="button" class="btn btn-danger">נקה</button>
+          </div>
+        </div>
 
+        <div class="undo-search-bar">
+          <input id="guardSearchInput" type="text" class="input" placeholder="חפש שומר..." />
+          <button id="searchPrevBtn" class="btn btn-neutral" type="button">הקודם</button>
+          <button id="searchNextBtn" class="btn btn-neutral" type="button">הבא</button>
+          <button id="clearSearchBtn" class="btn btn-neutral" type="button">נקה חיפוש</button>
+          <button id="undoBtn" class="btn btn-neutral" type="button">↶ Undo</button>
+          <button id="redoBtn" class="btn btn-neutral" type="button">↷ Redo</button>
+        </div>
+        <div id="searchStatus" class="search-status">אין חיפוש פעיל</div>
+
+        <div class="grid-wrap" style="margin-top:12px;">
+          <table id="excel-grid" class="excel-grid" dir="rtl"></table>
+        </div>
+        <div class="subtle">טיפ: אפשר להדביק טבלה מלאה מאקסל/גוגל שיטס, ופסיק או Enter מפרידים בין שמות בתוך תא.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">משיכת נתונים מ‑Google Sheet Web App ☁️</h3>
+        <p class="subtle">ה־URL מוסתר כברירת מחדל כדי לשמור על מסך נקי. לחץ על URL כדי לפתוח אותו.</p>
+        <div class="url-toggle-row">
+          <button id="toggleUrlButton" class="btn btn-neutral url-toggle-btn" type="button">🔗 URL</button>
+          <button id="fetchFromSheetButton" class="btn btn-success" type="button">משוך נתונים 🔄</button>
+          <div id="urlInputWrap" class="url-input-wrap">
+            <input id="googleSheetUrl" type="text" class="input url-input" placeholder="https://script.google.com/macros/s/.../exec" />
+          </div>
+        </div>
+        <p id="fetchStatus" class="subtle" style="display:none;"></p>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">בחירת שומרים ליעד של 4–5 משמרות 🏆</h3>
+        <p class="subtle">לחץ על השומרים שצריכים לקבל קדימות כדי להגיע ליעד.</p>
+        <div id="guardButtonsContainer" class="guard-grid"></div>
+      </div>
+
+      <div class="mode-bar">
+        <span class="label-strong">מצב סידור:</span>
+        <select id="autoMode" class="select">
+          <option value="balanced">איזון</option>
+          <option value="priority">עדיפות לשומרים מסומנים</option>
+          <option value="strict">מינימום חריגות</option>
+        </select>
+      </div>
+
+      <div class="toolbar">
+        <button id="quickFetchButton" class="tool-btn tool-fetch"><span class="icon">🔄</span><span>משוך נתונים</span></button>
+        <button id="autoScheduleButton" class="tool-btn tool-ai"><span class="icon">🤖</span><span>סדר אוטומטי</span></button>
+        <button id="analyzeButton" class="tool-btn tool-analyze"><span class="icon">🔍</span><span>נתח נתונים</span></button>
+        <button id="downloadHtmlButton" class="tool-btn tool-download"><span class="icon">💾</span><span>הורד HTML</span></button>
+        <button id="openSheetButton" class="tool-btn tool-sheet"><span class="icon">📄</span><span>פתח גיליון נתונים</span></button>
+        <button id="toggleFairnessButton" class="tool-btn tool-fair"><span class="icon">⚖️</span><span>פאנל הוגנות</span></button>
+      </div>
+
+      <div id="fairnessPanel" class="card fairness-panel">
+        <div class="row between">
+          <div class="label-strong">פאנל הוגנות וחריגות</div>
+          <button id="fairnessCloseBtn" type="button" class="btn btn-neutral">סגור</button>
+        </div>
+        <div id="fairnessContent" class="subtle" style="margin-top:12px;">בצע ניתוח כדי לראות הסבר למה כל תא/עובד מסומן.</div>
+      </div>
+
+      <div class="row center" style="margin-top:14px;">
+        <button id="openShiftReqBtn" class="btn btn-neutral">⚙️ הגדרות דרישות משמרות</button>
+        <button id="openVacationsBtn" class="btn btn-neutral">🗓️ הגדרות חופשות</button>
+      </div>
+
+      <div id="shiftReqPanel" class="card collapsible">
+        <div class="row between">
+          <div class="label-strong">כמה שומרים בכל משבצת</div>
+          <div class="row mobile-inline">
+            <button id="shiftReqClose" type="button" class="btn btn-neutral">סגור</button>
+            <label class="muted"><input id="shiftReqScopeWeek" type="checkbox" /> שמור לפי שבוע</label>
+            <label class="muted">יום תחילת שבוע:
+              <select id="weekStartSelect" class="select">
+                <option value="sun">יום ראשון</option>
+                <option value="mon">יום שני</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div id="shiftReqGrid" class="req-grid"></div>
+        <div class="subtle">ברירת המחדל היא שומר אחד בכל משמרת. אפשר להגדיר 2 שומרים בכל משבצת שצריך.</div>
+      </div>
+
+      <div id="vacationsPanel" class="card collapsible">
+        <div class="row between">
+          <div class="label-strong">חופשות / מילואים</div>
+          <div class="row mobile-inline">
+            <label class="muted"><input id="leaveScopeWeek" type="checkbox" /> שמור לפי שבוע</label>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <label class="label-strong">שם:
+            <input id="leaveNameInput" type="text" class="input" placeholder="שם עובד" />
+          </label>
+          <label class="label-strong">מ־
+            <input id="leaveFromInput" type="date" class="date-input" />
+          </label>
+          <label class="label-strong">עד
+            <input id="leaveToInput" type="date" class="date-input" />
+          </label>
+          <button id="leaveAddBtn" class="btn btn-primary" type="button">הוסף/עדכן</button>
+          <button id="leaveClearBtn" class="btn btn-danger" type="button">מחק</button>
+        </div>
+
+        <div id="vacationsList" class="list"></div>
+      </div>
+
+      <div id="statusBanner" class="status-banner"></div>
+
+      <div id="resultsContainer" class="card results-shell">
+        <p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
