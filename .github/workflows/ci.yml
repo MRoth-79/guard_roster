@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Show project structure
+        run: |
+          echo "Running CI for guard_roster"
+          ls -la
+          find . -maxdepth 2 -type f | sort
+
+      - name: Validate HTML exists
+        run: test -f index.html
+
+      - name: Validate main.js exists
+        run: test -f main.js
+
+      - name: Basic JavaScript syntax check
+        run: |
+          node --check main.js
+          find core features ui utils -name "*.js" -print0 | xargs -0 -I {} node --check "{}"
