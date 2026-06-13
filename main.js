@@ -27,7 +27,7 @@ import { getShiftReqStorageKey, loadShiftRequirements, saveShiftRequirements, ge
 import { getVacationStorageKey, loadVacationsMap, saveVacationsMap, isOnVacation, buildWeeklyOnLeaveSet, buildVacationsPanel } from "./features/vacations.js";
 import { pushUndoSnapshot, updateUndoRedoButtons, undo, redo } from "./features/undo-redo.js";
 import { fetchFromGoogleSheet } from "./features/google-sheet.js";
-import { autoSchedule as runAutoSchedule } from "./features/auto-scheduler.js";
+import { autoSchedule } from "./features/auto-scheduler.js";
 import { downloadHtmlTable } from "./features/export-html.js";
 
 const Store = createStore();
@@ -124,11 +124,7 @@ const App = {
   undo,
   redo,
   fetchFromGoogleSheet,
-  autoSchedule() {
-    console.log("auto clicked");
-    return runAutoSchedule(this);
-  },
-
+  autoSchedule,
   downloadHtmlTable,
 
   init() {
