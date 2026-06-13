@@ -105,21 +105,22 @@ export function autoSchedule(app) {
   const assign = (name, dayIdx, shiftIdx) => {
     newSchedule[shiftIdx][dayIdx].push(name);
     employeeShiftCount[name] = (employeeShiftCount[name] || 0) + 1;
-
-    const nextAllowed = nextAllowedSameDayAfter(shiftIdx);
+  
+    const nextAllowed = nextAllowedSameDayAfter.call(app, shiftIdx);
     const current = minNextAllowed[dayIdx][name];
     minNextAllowed[dayIdx][name] =
       current === undefined ? nextAllowed : Math.max(current, nextAllowed);
-
+  
     if (shiftIdx === I.NIGHT_2_6) {
       night2to6Count[name] = (night2to6Count[name] || 0) + 1;
       night0206Blocks[dayIdx].add(name);
     }
-
+  
     if (shiftIdx === I.NIGHT_22_2 && dayIdx + 1 < parsed.days.length) {
       night2202Blocks[dayIdx + 1].add(name);
     }
   };
+
 
   const shiftsOrder = [];
   dayOrderIndices.forEach((dayIndex) => {
