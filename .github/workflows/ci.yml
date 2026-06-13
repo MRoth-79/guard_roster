@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - '**'
   pull_request:
-    branches: [main]
+    branches:
+      - '**'
 
 jobs:
   validate:
@@ -17,19 +19,25 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Show project structure
         run: |
           echo "Running CI for guard_roster"
           ls -la
-          find . -maxdepth 2 -type f | sort
+          find . -maxdepth 3 -type f | sort
 
-      - name: Validate HTML exists
-        run: test -f index.html
+      - name: Validate root files exist
+        run: |
+          test -f index.html
+          test -f main.js
 
-      - name: Validate main.js exists
-        run: test -f main.js
+      - name: Validate project folders exist
+        run: |
+          test -d core
+          test -d features
+          test -d ui
+          test -d utils
 
       - name: Basic JavaScript syntax check
         run: |
