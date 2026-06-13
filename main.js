@@ -125,8 +125,10 @@ const App = {
   redo,
   fetchFromGoogleSheet,
   autoSchedule() {
+    console.log("auto clicked");
     return runAutoSchedule(this);
   },
+
   downloadHtmlTable,
 
   init() {
