@@ -10,7 +10,7 @@ export const STORAGE_KEYS = {
 };
 
 export const RULES = {
-  MIN_REQUIRED: 3,
+  MIN_REQUIRED: 4,
   MAX_ALLOWED: 5,
   MAX_NIGHT_2_6: 2,
 };
