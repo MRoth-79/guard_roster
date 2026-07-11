@@ -8,10 +8,11 @@ export function downloadHtmlTable() {
     return;
   }
 
-  // --- הסרת פס הסיכום (summary-bar) מהקובץ המיוצא ---
+  // --- הסרת פס הסיכום (summary-bar) ושורת המידע (results-info) מהקובץ המיוצא ---
   const tmp = document.createElement("div");
   tmp.innerHTML = rawResultsHtml;
   tmp.querySelector(".summary-bar")?.remove();
+  tmp.querySelector(".results-info")?.remove();
   const resultsHtml = tmp.innerHTML;
 
   const [y, m, d] = startDate.split("-").map(Number);
