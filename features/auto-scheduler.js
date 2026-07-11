@@ -88,7 +88,9 @@ export function autoSchedule() {
     const shifts = employeeShiftCount[name] || 0;
     const nights = night2to6Count[name] || 0;
     const priority = priorityGuards.has(name) ? 1 : 0;
-    if (mode === "priority") return [shifts, -priority, nights, name];
+    // FIX: ב-priority mode המועדפים הם מפתח המיון הראשון -> נבחרים לפני כולם,
+    // ואז מאוזנים בין עצמם (fewest shifts first) עד שמגיעים ל-MAX_ALLOWED.
+    if (mode === "priority") return [-priority, shifts, nights, name];
     if (mode === "strict") return [nights, shifts, -priority, name];
     return [shifts, nights, -priority, name];
   };
@@ -106,7 +108,12 @@ export function autoSchedule() {
         const baseCandidates = Array.from(availSet).filter((name) => !existing.has(name));
         if (!baseCandidates.length) break;
 
-        const primary = baseCandidates.filter((name) => (employeeShiftCount[name] || 0) < roundTarget && isLegalAssignment(name, dayIndex, shiftIndex));
+        // FIX: מועדפים ב-priority mode משוחררים מתקרת הסבב (roundTarget)
+        // וזכאים עד MAX_ALLOWED כבר מהסבב הראשון -> מתמלאים ל-5.
+        const primary = baseCandidates.filter((name) => {
+          const cap = (mode === "priority" && priorityGuards.has(name)) ? this.C.RULES.MAX_ALLOWED : roundTarget;
+          return (employeeShiftCount[name] || 0) < cap && isLegalAssignment(name, dayIndex, shiftIndex);
+        });
         const fallback = baseCandidates.filter((name) => (employeeShiftCount[name] || 0) < this.C.RULES.MAX_ALLOWED && isLegalAssignment(name, dayIndex, shiftIndex));
         const pool = (primary.length ? primary : fallback).sort((a, b) => {
           const sa = candidateScore(a, shiftIndex);
