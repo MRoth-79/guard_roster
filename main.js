@@ -12,7 +12,7 @@ import {
 import { createStore } from "./core/store.js";
 import { makeSnapshot, applySnapshot, persistFullState, restoreFullState } from "./core/state-sync.js";
 import { normalizeKey, splitCellNames, escapeHtml, aggressiveClean } from "./utils/text.js";
-import { getWeekStartSetting, computeExpectedDays, initializeData, getHebDayNameFromIso, updateStartDateLabelBySetting, getDatesForWeek, getIsoDatesForWeek } from "./utils/dates.js";
+import { getWeekStartSetting, computeExpectedDays, initializeData, computeUpcomingWeekStartIso, getHebDayNameFromIso, updateStartDateLabelBySetting, getDatesForWeek, getIsoDatesForWeek } from "./utils/dates.js";
 import { allEmployeeNames, getScheduledEmployeeNames, nameToColorClass } from "./utils/names.js";
 import { cx, insertPlainTextAtCursor, placeCaretAtEnd } from "./utils/dom.js";
 import { cacheDom, bindEvents } from "./ui/layout.js";
@@ -74,6 +74,7 @@ const App = {
   getWeekStartSetting,
   computeExpectedDays,
   initializeData,
+  computeUpcomingWeekStartIso,
   getHebDayNameFromIso,
   updateStartDateLabelBySetting,
   getDatesForWeek,
@@ -139,6 +140,17 @@ const App = {
     this.buildShiftReqPanel();
     this.buildVacationsPanel();
     this.restoreFullState();
+
+    // --- FIX: אל תשחזר תאריך תחילת שבוע שכבר עבר ---
+    // restoreFullState עלול לטעון startDate מסשן קודם (שני/ראשון של שבוע שעבר).
+    // אם התאריך המשוחזר ריק או מוקדם מיום תחילת השבוע הקרוב — קבע מחדש לשבוע קדימה.
+    // תאריך עתידי שנשמר ידנית (למשל שבועיים קדימה) יישאר כמו שהוא.
+    const upcomingIso = this.computeUpcomingWeekStartIso();
+    if (!this.el.startDate.value || this.el.startDate.value < upcomingIso) {
+      this.el.startDate.value = upcomingIso;
+    }
+    // --- END FIX ---
+
     this.updateStartDateLabelBySetting();
 
     this.Store.setState({
@@ -242,7 +254,7 @@ const App = {
         this.el.guardSearchInput.value = state.searchQuery;
       }
       if (state.parsedData) this.renderScheduleView(state.parsedData);
-      else if (this.el.resultsContainer) this.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;
+      else if (this.el.resultsContainer) this.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה-Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;
       this.updateHighlights(state.lockedName);
       this.updateSearchHighlights();
     } finally {
