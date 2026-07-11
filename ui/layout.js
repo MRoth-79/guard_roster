@@ -86,6 +86,19 @@ export function bindEvents() {
       this.persistFullState();
       return;
     }
+
+    // --- FIX: אפשר עריכה גם בתא ריק (בלי bubble, רק עם תגית "ריק") ---
+    // לפני התיקון עריכה הופעלה רק בלחיצה על ".person" קיים, ולכן תא ריק
+    // לא היה ניתן לעריכה. עכשיו לחיצה בכל מקום בתוך תא-תוצאות ללא שמות
+    // נכנסת ישירות למצב עריכה. תאים מלאים ממשיכים להתנהג בדיוק כמו קודם.
+    const emptyScheduleCell = e.target.closest('#scheduleTable td[contenteditable="plaintext-only"]');
+    if (emptyScheduleCell && !emptyScheduleCell.querySelector(".person")) {
+      e.preventDefault();
+      this.startCellEditing(emptyScheduleCell);
+      return;
+    }
+    // --- END FIX ---
+
     const isUi = !!(e.target.closest("button") || e.target.closest("input") || e.target.closest("select") || e.target.closest("a"));
     if (!isUi) {
       this.state.lockedName = null;
