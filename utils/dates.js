@@ -1,3 +1,10 @@
+function toLocalISODate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function getWeekStartSetting() {
   try {
     return localStorage.getItem(this.C.STORAGE_KEYS.WEEK_START) === "sun" ? "sun" : "mon";
@@ -12,13 +19,20 @@ export function computeExpectedDays(weekStart) {
     : ["יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת", "יום ראשון"];
 }
 
-export function initializeData() {
+// חדש: מחשב את יום תחילת השבוע הקרוב קדימה (לעולם לא תאריך שעבר)
+export function computeUpcomingWeekStartIso() {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const dow = today.getDay();
-  const weekStart = this.getWeekStartSetting();
-  const daysToNext = weekStart === "mon" ? ((8 - dow) % 7 || 7) : ((7 - dow) % 7 || 7);
+  const targetDow = this.getWeekStartSetting() === "sun" ? 0 : 1; // 0=ראשון, 1=שני
+  let daysToNext = (targetDow - dow + 7) % 7;
+  if (daysToNext === 0) daysToNext = 7; // אם היום הוא יום תחילת השבוע — קפוץ לשבוע קדימה
   today.setDate(today.getDate() + daysToNext);
-  this.el.startDate.value = today.toISOString().slice(0, 10);
+  return toLocalISODate(today); // ולא toISOString() — למניעת הזזת יום מ-UTC
+}
+
+export function initializeData() {
+  this.el.startDate.value = this.computeUpcomingWeekStartIso();
   try {
     const savedUrl = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL);
     this.el.googleSheetUrl.value = savedUrl || this.C.DEFAULT_WEB_APP_URL;
@@ -59,8 +73,7 @@ export function getIsoDatesForWeek(isoDate) {
   for (let i = 0; i < 7; i++) {
     const cur = new Date(start);
     cur.setDate(start.getDate() + i);
-    out.push(cur.toISOString().slice(0, 10));
+    out.push(toLocalISODate(cur)); // ולא toISOString() — תיקון הזזת היום
   }
   return out;
 }
-
