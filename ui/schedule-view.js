@@ -85,9 +85,8 @@ export function renderSummaryTable(allShifts, night2to6Count) {
       let rowClass = "";
       let status = "";
       if (count >= this.C.RULES.MAX_ALLOWED) { rowClass = "shifts-5-count"; status = `✅ עמד (${count})`; }
-      else if (count === 4) { rowClass = "shifts-4-count"; status = "✅ עמד (4)"; }
-      else if (count === 3) { rowClass = "shifts-3-count"; status = "🆗 עמד (3)"; }
-      else { rowClass = "low-shifts"; status = `❌ פחות מ־3 (${count})`; }
+      else if (count >= this.C.RULES.MIN_REQUIRED) { rowClass = "shifts-4-count"; status = `✅ עמד (${count})`; }
+      else { rowClass = "low-shifts"; status = `❌ פחות מ־${this.C.RULES.MIN_REQUIRED} (${count})`; }
       if (nights > this.C.RULES.MAX_NIGHT_2_6) rowClass += " night-limit-fail-row";
       html += `<tr class="${rowClass}"><td>${serial++}</td><td>${this.escapeHtml(name)}</td><td>${count}</td><td>${nights > this.C.RULES.MAX_NIGHT_2_6 ? `<span class="night-limit-fail">❌ ${nights}</span>` : `<span class="night-limit-ok">✅ ${nights}</span>`}</td><td>${status}</td></tr>`;
     });
@@ -144,4 +143,3 @@ export function renderScheduleView(parsed) {
   this.setupScheduleEditors();
   this.updateHighlights(this.state.lockedName);
 }
-
