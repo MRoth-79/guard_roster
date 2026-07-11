@@ -1,12 +1,19 @@
 export function downloadHtmlTable() {
-  const resultsHtml = this.el.resultsContainer.innerHTML;
+  const rawResultsHtml = this.el.resultsContainer.innerHTML;
   const fairnessHtml = this.el.fairnessContent.innerHTML;
   const fairnessVisible = this.el.fairnessPanel.style.display === "block";
   const startDate = this.el.startDate.value;
-  if (!startDate || !resultsHtml || resultsHtml.includes("הדבק נתונים")) {
+  if (!startDate || !rawResultsHtml || rawResultsHtml.includes("הדבק נתונים")) {
     alert("בחר תאריך ובצע ניתוח לפני ההורדה.");
     return;
   }
+
+  // --- הסרת פס הסיכום (summary-bar) מהקובץ המיוצא ---
+  const tmp = document.createElement("div");
+  tmp.innerHTML = rawResultsHtml;
+  tmp.querySelector(".summary-bar")?.remove();
+  const resultsHtml = tmp.innerHTML;
+
   const [y, m, d] = startDate.split("-").map(Number);
   const start = new Date(y, m - 1, d);
   const end = new Date(start); end.setDate(start.getDate() + 6);
@@ -14,35 +21,26 @@ export function downloadHtmlTable() {
   const title = `טבלת משמרות ${fmt(start)} - ${fmt(end)}`;
   const style = document.querySelector("style").textContent;
 
-  // --- CSS עצמאי להדגשת "מצא את עצמך" בקובץ המיוצא ---
-  const highlightStyle = `
-    .schedule-table.hl-on .person { opacity: .2; transition: opacity .12s ease; }
-    .schedule-table.hl-on .person.hl-active { opacity: 1; box-shadow: 0 0 0 2px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.25); font-weight: 700; }
-    .schedule-table .person { cursor: pointer; }
-    @media print {
-      .schedule-table.hl-on .person { opacity: 1 !important; }
-      .schedule-table .person.hl-active { box-shadow: none !important; }
-    }
-  `;
-
-  // --- סקריפט inline עצמאי: hover + נעילה בקליק, ללא תלות ב-App ---
+  // --- סקריפט inline עצמאי: משתמש באותן מחלקות של האפליקציה
+  //     (spotlight-active על הקונטיינר + highlight-name על ה-bubble)
+  //     כך שההדגשה זהה לחלוטין לטבלה הרגילה. כולל נעילה בקליק. ---
   const highlightScript = `
     (function () {
+      var root = document.querySelector('.results-shell');
       var table = document.getElementById('scheduleTable');
-      if (!table) return;
+      if (!root || !table) return;
       var locked = null;
       var norm = function (s) { return (s || '').replace(/\\u00A0/g, ' ').trim(); };
       function apply(name) {
-        var bubbles = table.querySelectorAll('.person');
+        var bubbles = root.querySelectorAll('.person');
         if (!name) {
-          table.classList.remove('hl-on');
-          bubbles.forEach(function (b) { b.classList.remove('hl-active'); });
+          root.classList.remove('spotlight-active');
+          bubbles.forEach(function (b) { b.classList.remove('highlight-name'); });
           return;
         }
-        table.classList.add('hl-on');
+        root.classList.add('spotlight-active');
         bubbles.forEach(function (b) {
-          if (norm(b.textContent) === name) b.classList.add('hl-active');
-          else b.classList.remove('hl-active');
+          b.classList.toggle('highlight-name', norm(b.textContent) === name);
         });
       }
       table.addEventListener('mouseover', function (e) {
@@ -61,6 +59,7 @@ export function downloadHtmlTable() {
         locked = (locked === name) ? null : name;
         apply(locked);
       });
+      table.querySelectorAll('.person').forEach(function (b) { b.style.cursor = 'pointer'; });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { locked = null; apply(null); }
       });
@@ -74,7 +73,6 @@ export function downloadHtmlTable() {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>${title}</title>
 <style>${style}</style>
-<style>${highlightStyle}</style>
 </head>
 <body>
   <div class="app-shell">
