@@ -105,21 +105,23 @@ export function renderMainScheduleTable(parsed, datesForWeek, isoDates, cellFlag
 }
 
 export function updateHighlights(lockedName) {
-  // מניעת גלילה קופצת אם המשתמש באמצע הקלדה בתוך תא
+  const root = this.el.resultsContainer;
+  if (!root) return;
+
+  // בדיקה אם המשתמש כרגע ממוקד בתא עריכה ב-Grid
   const activeEl = document.activeElement;
   const isEditingInGrid = activeEl && (activeEl.classList.contains("cell") || activeEl.isContentEditable);
 
-  const targets = document.querySelectorAll(".person");
-  targets.forEach((el) => {
-    const name = el.textContent.trim();
-    if (lockedName && name === lockedName) {
-      el.classList.add("highlight-name");
-      // גלילה לתא תופעל רק אם המשתמש לא מקליד כרגע בתא אחר
-      if (!isEditingInGrid && el.dataset.scrollTarget === "true") {
-        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-    } else {
-      el.classList.remove("highlight-name");
+  if (lockedName) root.classList.add("spotlight-active");
+  else root.classList.remove("spotlight-active");
+
+  root.querySelectorAll(".person").forEach((el) => {
+    const isMatch = el.textContent.trim() === lockedName;
+    el.classList.toggle("highlight-name", isMatch);
+
+    // ביטול מוחלט של scrollIntoView בזמן שהמשתמש מקליד בתא
+    if (isMatch && !isEditingInGrid && el.dataset.scrollTarget === "true") {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   });
 }
@@ -141,6 +143,9 @@ export function renderScheduleView(parsed) {
     return;
   }
 
+  // שמירת האלמנט שבפוקוס לפני העדכון
+  const activeEl = document.activeElement;
+
   const datesForWeek = this.getDatesForWeek(this.el.startDate.value);
   const isoDates = this.getIsoDatesForWeek(this.el.startDate.value);
   const insights = this.calculateScheduleInsights(parsed.data, parsed.days);
@@ -161,5 +166,11 @@ export function renderScheduleView(parsed) {
   this.el.resultsContainer.innerHTML = html;
   this.renderFairnessPanel(parsed, insights);
   this.setupScheduleEditors();
+
+  // החזרת הפוקוס לתא אם המשתמש באמצע הקלדה
+  if (activeEl && document.body.contains(activeEl)) {
+    activeEl.focus();
+  }
+
   this.updateHighlights(this.state.lockedName);
 }
