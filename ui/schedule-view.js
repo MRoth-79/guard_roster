@@ -108,21 +108,12 @@ export function updateHighlights(lockedName) {
   const root = this.el.resultsContainer;
   if (!root) return;
 
-  // בדיקה אם המשתמש כרגע ממוקד בתא עריכה ב-Grid
-  const activeEl = document.activeElement;
-  const isEditingInGrid = activeEl && (activeEl.classList.contains("cell") || activeEl.isContentEditable);
-
   if (lockedName) root.classList.add("spotlight-active");
   else root.classList.remove("spotlight-active");
 
   root.querySelectorAll(".person").forEach((el) => {
     const isMatch = el.textContent.trim() === lockedName;
     el.classList.toggle("highlight-name", isMatch);
-
-    // ביטול מוחלט של scrollIntoView בזמן שהמשתמש מקליד בתא
-    if (isMatch && !isEditingInGrid && el.dataset.scrollTarget === "true") {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
   });
 }
 
@@ -142,9 +133,6 @@ export function renderScheduleView(parsed) {
     this.el.fairnessContent.innerHTML = `<div class="empty-state">בחר תאריך תחילת שבוע.</div>`;
     return;
   }
-
-  // שמירת האלמנט שבפוקוס לפני העדכון
-  const activeEl = document.activeElement;
 
   const datesForWeek = this.getDatesForWeek(this.el.startDate.value);
   const isoDates = this.getIsoDatesForWeek(this.el.startDate.value);
@@ -166,11 +154,5 @@ export function renderScheduleView(parsed) {
   this.el.resultsContainer.innerHTML = html;
   this.renderFairnessPanel(parsed, insights);
   this.setupScheduleEditors();
-
-  // החזרת הפוקוס לתא אם המשתמש באמצע הקלדה
-  if (activeEl && document.body.contains(activeEl)) {
-    activeEl.focus();
-  }
-
   this.updateHighlights(this.state.lockedName);
 }
