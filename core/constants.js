@@ -71,4 +71,5 @@ export const COLOR_MAP = {
   "יפתח": "color-יפתח",
   "חברוני": "color-חברוני",
   "ויקטור": "color-ויקטור",
+  "שגיא": "color-שגיא",
 };
