@@ -104,6 +104,19 @@ export function renderMainScheduleTable(parsed, datesForWeek, isoDates, cellFlag
   return html;
 }
 
+export function updateHighlights(lockedName) {
+  const root = this.el.resultsContainer;
+  if (!root) return;
+
+  if (lockedName) root.classList.add("spotlight-active");
+  else root.classList.remove("spotlight-active");
+
+  root.querySelectorAll(".person").forEach((el) => {
+    const isMatch = el.textContent.trim() === lockedName;
+    el.classList.toggle("highlight-name", isMatch);
+  });
+}
+
 export function renderScheduleView(parsed) {
   if (!parsed) {
     this.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;

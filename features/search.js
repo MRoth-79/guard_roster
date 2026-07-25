@@ -1,13 +1,3 @@
-export function updateHighlights(name) {
-  const root = this.el.resultsContainer;
-  if (!root) return;
-  if (name) root.classList.add("spotlight-active");
-  else root.classList.remove("spotlight-active");
-  root.querySelectorAll(".person").forEach((el) => {
-    el.classList.toggle("highlight-name", el.textContent.trim() === name);
-  });
-}
-
 export function updateSearchHighlights() {
   const query = this.normalizeKey(this.Store.getState().searchQuery || "").toLowerCase();
   const root = this.el.resultsContainer;
@@ -27,7 +17,6 @@ export function updateSearchHighlights() {
   if (this.state.searchMatches.length) {
     this.state.currentSearchIndex = 0;
     this.focusSearchMatch();
-    this.el.searchStatus.textContent = `${this.state.currentSearchIndex + 1}/${this.state.searchMatches.length}`;
   } else {
     this.el.searchStatus.textContent = query ? "לא נמצאו תוצאות" : "אין חיפוש פעיל";
   }
@@ -38,8 +27,8 @@ export function focusSearchMatch() {
   if (this.state.currentSearchIndex < 0 || !this.state.searchMatches.length) return;
   const current = this.state.searchMatches[this.state.currentSearchIndex];
   if (!current) return;
+
   current.classList.add("search-current");
-  current.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
   this.el.searchStatus.textContent = `${this.state.currentSearchIndex + 1}/${this.state.searchMatches.length}`;
 }
 
@@ -48,4 +37,3 @@ export function navigateSearch(step) {
   this.state.currentSearchIndex = (this.state.currentSearchIndex + step + this.state.searchMatches.length) % this.state.searchMatches.length;
   this.focusSearchMatch();
 }
-
