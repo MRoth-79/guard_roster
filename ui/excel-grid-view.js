@@ -1,19 +1,33 @@
-export function renderExcelGrid(app) {
+export function setupExcelGridEvents(app) {
   const table = app.el["excel-grid"];
-  const dayShort = app.state.expectedDays.map((day) => day.replace("יום ", ""));
-  let html = "<thead><tr><th>שעות / יום</th>";
-  dayShort.forEach((day) => { html += `<th>${app.escapeHtml(day)}</th>`; });
-  html += "</tr></thead><tbody>";
+  if (!table) return;
 
-  app.C.TIME_SLOTS.forEach((slot, r) => {
-    const time = slot.split("(")[0].trim();
-    html += `<tr><td>${app.escapeHtml(time)}</td>`;
-    app.state.expectedDays.forEach((_, c) => {
-      html += `<td class="cell" contenteditable="plaintext-only" data-r="${r}" data-c="${c}">${app.escapeHtml(app.state.excelMatrix[r]?.[c] || "")}</td>`;
-    });
-    html += "</tr>";
+  // 1. טיפול בלחיצה על Enter ופוקוס בתוך תא
+  table.addEventListener("keydown", (e) => {
+    const cell = e.target.closest("td.cell");
+    if (!cell) return;
+
+    if (e.key === "Enter") {
+      e.preventDefault(); // מניעת ירידת שורה בתוך התא
+      cell.blur(); // יציאה מהתא כדי לשמור שינויים ולהתקדם
+    }
   });
 
-  html += "</tbody>";
-  table.innerHTML = html;
+  // 2. עדכון הנתונים בעת הקלדה (ללא גלילה קופצת)
+  table.addEventListener("input", (e) => {
+    const cell = e.target.closest("td.cell");
+    if (!cell) return;
+
+    const r = cell.dataset.r;
+    const c = cell.dataset.c;
+
+    // ניקוי ירידות שורה ורווחים כפולים
+    const cleanValue = cell.innerText.replace(/\r?\n|\r/g, " ").trim();
+    app.state.excelMatrix[r][c] = cleanValue;
+
+    // רענון הלוח התחתון
+    if (typeof app.renderScheduleView === "function") {
+      app.renderScheduleView(app.getParsedData());
+    }
+  });
 }
