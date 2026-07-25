@@ -104,6 +104,26 @@ export function renderMainScheduleTable(parsed, datesForWeek, isoDates, cellFlag
   return html;
 }
 
+export function updateHighlights(lockedName) {
+  // מניעת גלילה קופצת אם המשתמש באמצע הקלדה בתוך תא
+  const activeEl = document.activeElement;
+  const isEditingInGrid = activeEl && (activeEl.classList.contains("cell") || activeEl.isContentEditable);
+
+  const targets = document.querySelectorAll(".person");
+  targets.forEach((el) => {
+    const name = el.textContent.trim();
+    if (lockedName && name === lockedName) {
+      el.classList.add("highlight-name");
+      // גלילה לתא תופעל רק אם המשתמש לא מקליד כרגע בתא אחר
+      if (!isEditingInGrid && el.dataset.scrollTarget === "true") {
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    } else {
+      el.classList.remove("highlight-name");
+    }
+  });
+}
+
 export function renderScheduleView(parsed) {
   if (!parsed) {
     this.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;
