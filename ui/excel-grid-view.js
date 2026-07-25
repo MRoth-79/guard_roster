@@ -17,3 +17,4 @@ export function renderExcelGrid(app) {
   html += "</tbody>";
   table.innerHTML = html;
 }
+
