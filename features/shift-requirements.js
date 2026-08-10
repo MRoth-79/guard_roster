@@ -1,5 +1,5 @@
 export function getShiftReqStorageKey() {
-  const byWeek = !!this.el.shiftReqScopeWeek.checked;
+  const byWeek = !!this.el.shiftReqScopeWeek?.checked;
   return byWeek ? `shift_requirements__${this.el.startDate.value || "no-date"}` : "shift_requirements__global";
 }
 
@@ -70,7 +70,16 @@ export function buildShiftReqPanel() {
     this.pushUndoSnapshot();
     const val = this.el.weekStartSelect.value === "sun" ? "sun" : "mon";
     try { localStorage.setItem(this.C.STORAGE_KEYS.WEEK_START, val); } catch {}
-    this.state.expectedDays = this.computeExpectedDays(val);
+    const oldDays = [...this.state.expectedDays];
+    const newDays = this.computeExpectedDays(val);
+    this.state.excelMatrix = (this.state.excelMatrix.length
+      ? this.state.excelMatrix
+      : this.C.TIME_SLOTS.map(() => oldDays.map(() => ""))
+    ).map((row) => newDays.map((day) => {
+      const oldIndex = oldDays.indexOf(day);
+      return oldIndex >= 0 ? (row[oldIndex] || "") : "";
+    }));
+    this.state.expectedDays = newDays;
     this.ExcelGrid.init();
     this.updateStartDateLabelBySetting();
     renderRows();
