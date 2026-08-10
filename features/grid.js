@@ -10,9 +10,22 @@ export function createExcelGrid(app) {
       const wrapper = app.el["excel-grid"].parentElement;
       if (!wrapper.dataset.bound) {
         wrapper.dataset.bound = "1";
+        wrapper.addEventListener("focusin", (e) => {
+          const cell = e.target.closest("td.cell");
+          if (!cell || cell.dataset.undoPushed === "1") return;
+          cell.dataset.undoPushed = "1";
+          app.pushUndoSnapshot();
+        });
+        wrapper.addEventListener("focusout", (e) => {
+          const cell = e.target.closest("td.cell");
+          if (cell) delete cell.dataset.undoPushed;
+        });
         wrapper.addEventListener("paste", (e) => {
           const cell = e.target.closest("td.cell");
-          if (cell) app.pushUndoSnapshot();
+          if (cell && cell.dataset.undoPushed !== "1") {
+            cell.dataset.undoPushed = "1";
+            app.pushUndoSnapshot();
+          }
           this.handlePaste(e);
           app.Store.setState({ excelMatrix: app.state.excelMatrix });
           app.persistFullState();
@@ -105,12 +118,7 @@ export function createExcelGrid(app) {
       let leaveNames = [];
       if (startDate) {
         const isoDays = app.getIsoDatesForWeek(startDate);
-        leaveNames = values.filter((name) => {
-          const map = app.loadVacationsMap();
-          const entry = map[name] || map[name.replace(/\s+/g, "_")];
-          if (!entry?.from || !entry?.to) return false;
-          return isoDays.some((iso) => iso >= entry.from && iso <= entry.to);
-        });
+        leaveNames = values.filter((name) => isoDays.some((iso) => app.isOnVacation(name, iso)));
       }
       cell.classList.remove("has-unknown", "on-leave-cell");
       cell.removeAttribute("title");
@@ -130,8 +138,7 @@ export function createExcelGrid(app) {
     clear() {
       app.state.excelMatrix = app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
       this.render();
-      app.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;
-      app.el.fairnessContent.innerHTML = `בצע ניתוח כדי לראות הסבר למה כל תא/עובד מסומן.`;
+      app.el.resultsContainer.innerHTML = `<p id="initialMessage">לחץ על «משוך וסדר» או הדבק זמינות לטבלה ולחץ «סדר מחדש».</p>`;
       app.updateSearchHighlights();
     },
   };
