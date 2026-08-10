@@ -2,17 +2,15 @@ export function makeSnapshot() {
   return {
     expectedDays: [...this.state.expectedDays],
     excelMatrix: this.state.excelMatrix.map((row) => [...row]),
-    startDate: this.el.startDate.value,
-    googleSheetUrl: this.el.googleSheetUrl.value,
+    startDate: this.el.startDate?.value || "",
+    googleSheetUrl: this.el.googleSheetUrl?.value || "",
     lockedName: this.state.lockedName,
-    fairnessOpen: this.el.fairnessPanel.style.display === "block",
     weekStart: this.getWeekStartSetting(),
     priorityGuards: Array.from(this.getPriorityGuardSet()),
-    shiftReqScopeWeek: !!this.el.shiftReqScopeWeek.checked,
-    leaveScopeWeek: !!this.el.leaveScopeWeek.checked,
+    shiftReqScopeWeek: !!this.el.shiftReqScopeWeek?.checked,
     searchQuery: this.Store.getState().searchQuery || "",
-    autoMode: this.el.autoMode.value,
-    urlOpen: this.el.urlInputWrap.classList.contains("open"),
+    autoMode: this.el.autoMode?.value || "balanced",
+    urlOpen: !!this.el.urlInputWrap?.classList.contains("open"),
   };
 }
 
@@ -31,19 +29,27 @@ export function applySnapshot(snapshot) {
   this.el.startDate.value = snapshot.startDate || this.el.startDate.value;
   this.el.googleSheetUrl.value = snapshot.googleSheetUrl || this.el.googleSheetUrl.value || this.C.DEFAULT_WEB_APP_URL;
   this.state.lockedName = snapshot.lockedName || null;
-  this.el.fairnessPanel.style.display = snapshot.fairnessOpen ? "block" : "none";
-  this.el.guardSearchInput.value = snapshot.searchQuery || "";
-  this.el.autoMode.value = snapshot.autoMode || "balanced";
-  this.el.urlInputWrap.classList.toggle("open", !!snapshot.urlOpen);
-  this.el.toggleUrlButton.textContent = this.el.urlInputWrap.classList.contains("open") ? "🔗 סגור URL" : "🔗 URL";
+  if (this.el.guardSearchInput) this.el.guardSearchInput.value = snapshot.searchQuery || "";
+  if (this.el.autoMode) this.el.autoMode.value = snapshot.autoMode || "balanced";
+  if (this.el.urlInputWrap) this.el.urlInputWrap.classList.toggle("open", !!snapshot.urlOpen);
+  if (this.el.toggleUrlButton) {
+    this.el.toggleUrlButton.textContent = this.el.urlInputWrap?.classList.contains("open") ? "🔗 סגור URL" : "🔗 URL";
+  }
+
+  const weekStart = snapshot.weekStart === "sun" || snapshot.weekStart === "mon"
+    ? snapshot.weekStart
+    : this.getWeekStartSetting();
+  try { localStorage.setItem(this.C.STORAGE_KEYS.WEEK_START, weekStart); } catch {}
+  if (this.el.weekStartSelect) this.el.weekStartSelect.value = weekStart;
+
+  if (typeof snapshot.shiftReqScopeWeek === "boolean" && this.el.shiftReqScopeWeek) {
+    this.el.shiftReqScopeWeek.checked = snapshot.shiftReqScopeWeek;
+    try { localStorage.setItem(this.C.STORAGE_KEYS.SHIFT_REQ_SCOPE_WEEK, snapshot.shiftReqScopeWeek ? "1" : "0"); } catch {}
+  }
 
   this.ExcelGrid.render();
+  this.state.priorityGuards = (snapshot.priorityGuards || []).map((x) => this.normalizeKey(x)).filter(Boolean);
   this.renderGuardButtons();
-
-  const selected = new Set((snapshot.priorityGuards || []).map((x) => this.normalizeKey(x)));
-  this.el.guardButtonsContainer.querySelectorAll(".guard-btn").forEach((btn) => {
-    btn.classList.toggle("active", selected.has(this.normalizeKey(btn.textContent)));
-  });
 
   this.updateStartDateLabelBySetting();
   const parsed = this.parseScheduleText(this.serializeMatrixToVerticalText());
@@ -69,12 +75,12 @@ export function restoreFullState() {
   try {
     const raw = localStorage.getItem(this.C.STORAGE_KEYS.FULL_STATE);
     if (!raw) {
-      this.el.googleSheetUrl.value = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL) || this.C.DEFAULT_WEB_APP_URL;
+      this.el.googleSheetUrl.value = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL) || this.C.SHEET_URL;
       return;
     }
     const parsed = JSON.parse(raw);
     this.applySnapshot(parsed);
   } catch {
-    this.el.googleSheetUrl.value = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL) || this.C.DEFAULT_WEB_APP_URL;
+    this.el.googleSheetUrl.value = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL) || this.C.SHEET_URL;
   }
 }
