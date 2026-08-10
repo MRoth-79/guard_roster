@@ -1,10 +1,8 @@
 export function downloadHtmlTable() {
   const rawResultsHtml = this.el.resultsContainer.innerHTML;
-  const fairnessHtml = this.el.fairnessContent.innerHTML;
-  const fairnessVisible = this.el.fairnessPanel.style.display === "block";
   const startDate = this.el.startDate.value;
-  if (!startDate || !rawResultsHtml || rawResultsHtml.includes("הדבק נתונים")) {
-    alert("בחר תאריך ובצע ניתוח לפני ההורדה.");
+  if (!startDate || !rawResultsHtml || rawResultsHtml.includes("משוך וסדר") || rawResultsHtml.includes("הדבק נתונים")) {
+    alert("בחר תאריך וסדר משמרות לפני ההורדה.");
     return;
   }
 
@@ -79,10 +77,6 @@ export function downloadHtmlTable() {
   <div class="app-shell">
     <div class="hero">${title}</div>
     <div class="card results-shell">${resultsHtml.replace(/contenteditable="plaintext-only"/g, 'contenteditable="false"')}</div>
-    <div class="card fairness-panel" style="display:${fairnessVisible ? "block" : "none"}">
-      <div class="label-strong" style="text-align:center;margin-bottom:12px;">פאנל הוגנות וחריגות</div>
-      ${fairnessHtml}
-    </div>
   </div>
   <script>
     window.GleanBridge = window.GleanBridge || { postMessage() {}, onMessage() {} };
