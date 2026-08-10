@@ -4,218 +4,301 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>מנתח טבלת משמרות 📅</title>
+  <title>מנתח טבלת משמרות</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
   <style>
 :root {
-  --artifact-background:#ffffff;
-  --artifact-background-light:#f6f6f6;
-  --artifact-background-mid:#f0f0f0;
-  --artifact-border-light:#e5e5e5;
-  --artifact-border-dark:#cfcfcf;
-  --artifact-text-primary:#1b1b1b;
-  --artifact-text-secondary:#727272;
-  --artifact-page:#f6f6f6;
+  --artifact-background:#f4f7f6;
+  --artifact-background-light:#eef3f2;
+  --artifact-background-mid:#e4ecea;
+  --artifact-border-light:#d7e3e0;
+  --artifact-border-dark:#b8ccc7;
+  --artifact-text-primary:#14221f;
+  --artifact-text-secondary:#5b6f6a;
+  --artifact-page:#e8f0ee;
   --artifact-surface:#ffffff;
-  --artifact-surface-muted:#f0f0f0;
+  --artifact-surface-muted:#f3f8f6;
   --artifact-accent:#0f766e;
   --artifact-accent-text:#ffffff;
-  --artifact-accent-2:#99f6e4;
-  --artifact-accent-2-text:#134e4a;
-  --artifact-info:#2563eb;
-  --artifact-info-soft:#eaf1ff;
-  --artifact-success:#16a34a;
-  --artifact-success-soft:#eaf8ef;
-  --artifact-warning:#ea580c;
-  --artifact-warning-soft:#fff3e8;
-  --artifact-danger:#dc2626;
-  --artifact-danger-soft:#fdecec;
-  --artifact-fair:#7c3aed;
-  --artifact-fair-soft-2:#faf5ff;
-  --artifact-weekend-bg:#ffd9c5;
-  --artifact-weekend-text:#7a3e1d;
-  --artifact-unknown-bg:#fff8e1;
-  --artifact-unknown-text:#5d4037;
-  --artifact-leave-bg:#eceff1;
-  --artifact-leave-text:#607d8b;
-  --artifact-guard-bg:#e0f7fa;
-  --artifact-guard-text:#006064;
-  --artifact-guard-active-bg:#fffbeb;
+  --artifact-accent-2:#ccfbf1;
+  --artifact-accent-2-text:#115e59;
+  --artifact-info:#0369a1;
+  --artifact-info-soft:#e0f2fe;
+  --artifact-success:#15803d;
+  --artifact-success-soft:#dcfce7;
+  --artifact-warning:#c2410c;
+  --artifact-warning-soft:#ffedd5;
+  --artifact-danger:#b91c1c;
+  --artifact-danger-soft:#fee2e2;
+  --artifact-fair:#0f766e;
+  --artifact-fair-soft-2:#f0fdfa;
+  --artifact-weekend-bg:#fff1e6;
+  --artifact-weekend-text:#9a3412;
+  --artifact-unknown-bg:#fffbeb;
+  --artifact-unknown-text:#92400e;
+  --artifact-leave-bg:#f1f5f9;
+  --artifact-leave-text:#64748b;
+  --artifact-guard-bg:#ecfeff;
+  --artifact-guard-text:#155e75;
+  --artifact-guard-active-bg:#fef3c7;
   --artifact-guard-active-text:#92400e;
-  --artifact-shadow:0 10px 24px rgba(15,23,42,.08);
-  --artifact-shadow-soft:0 4px 12px rgba(15,23,42,.06);
+  --artifact-shadow:0 18px 40px rgba(15, 61, 54, .10);
+  --artifact-shadow-soft:0 6px 18px rgba(15, 61, 54, .07);
   --artifact-person-dim:.22;
-  --artifact-radius:18px;
+  --artifact-radius:20px;
   --artifact-max-width:1540px;
   --artifact-time-col-width:120px;
   --artifact-table-min-width:1100px;
 
-  /* פלטת צבעים מודרנית, מגוונת ובעלת ניגודיות גבוהה */
+  /* פלטה מפוזרת על גלגל הצבעים — כל שם עם גוון + מסגרת ייחודיים */
 
-  /* אמיר - כחול רויאל עמוק עם מסגרת תכלת זוהרת */
-  --person-אמיר-bg: linear-gradient(135deg, #1e3a8a, #0284c7);
+  /* אמיר - כחול נייבי עמוק */
+  --person-אמיר-bg: linear-gradient(135deg, #1e3a8a, #1d4ed8);
   --person-אמיר-text: #ffffff;
-  --person-אמיר-border: 2px solid #38bdf8;
+  --person-אמיר-border: 2px solid #93c5fd;
 
-  /* נמרוד - ירוק אמרלד תוסס */
-  --person-נמרוד-bg: linear-gradient(135deg, #047857, #10b981);
+  /* נמרוד - אמרלד */
+  --person-נמרוד-bg: linear-gradient(135deg, #065f46, #10b981);
   --person-נמרוד-text: #ffffff;
-  --person-נמרוד-border: 2px solid #a7f3d0;
+  --person-נמרוד-border: 2px solid #6ee7b7;
 
-  /* יובי - כתום-זהב זוהר */
-  --person-יובי-bg: linear-gradient(135deg, #d97706, #f59e0b);
+  /* יובי - ענבר שרוף */
+  --person-יובי-bg: linear-gradient(135deg, #92400e, #d97706);
   --person-יובי-text: #ffffff;
-  --person-יובי-border: 2px solid #fef08a;
+  --person-יובי-border: 2px solid #fcd34d;
 
-  /* טגניה - סגול חציל עמוק */
-  --person-טגניה-bg: linear-gradient(135deg, #581c87, #7e22ce);
+  /* טגניה - סגול חציל */
+  --person-טגניה-bg: linear-gradient(135deg, #581c87, #a21caf);
   --person-טגניה-text: #ffffff;
-  --person-טגניה-border: 2px solid #e879f9;
+  --person-טגניה-border: 2px dashed #f0abfc;
 
-  /* ישי - אדום בורדו מודרני */
+  /* ישי - בורדו-ורוד */
   --person-ישי-bg: linear-gradient(135deg, #9f1239, #e11d48);
   --person-ישי-text: #ffffff;
   --person-ישי-border: 2px solid #fda4af;
 
-  /* גולן - טורקיז ניאון זוהר */
-  --person-גולן-bg: linear-gradient(135deg, #0f766e, #14b8a6);
+  /* גולן - טורקיז-ירוק */
+  --person-גולן-bg: linear-gradient(135deg, #115e59, #0d9488);
   --person-גולן-text: #ffffff;
-  --person-גולן-border: 2px solid #99f6e4;
+  --person-גולן-border: 3px double #5eead4;
 
-  /* חסון - חום-ברונזה חם */
-  --person-חסון-bg: linear-gradient(135deg, #7c2d12, #c2410c);
+  /* חסון - שוקולד חום */
+  --person-חסון-bg: linear-gradient(135deg, #78350f, #a16207);
   --person-חסון-text: #ffffff;
-  --person-חסון-border: 2px solid #fed7aa;
+  --person-חסון-border: 2px solid #fde68a;
 
-  /* לישע - ירוק ליים זרחני */
-  --person-לישע-bg: linear-gradient(135deg, #4d7c0f, #65a30d);
-  --person-לישע-text: #ffffff;
-  --person-לישע-border: 2px solid #d9f99d;
+  /* לישע - ליים זוהר */
+  --person-לישע-bg: linear-gradient(135deg, #3f6212, #a3e635);
+  --person-לישע-text: #14532d;
+  --person-לישע-border: 2px solid #365314;
 
-  /* עידן - שחור אופק-אפור דרמטי */
-  --person-עידן-bg: linear-gradient(135deg, #18181b, #27272a);
-  --person-עידן-text: #ffffff;
+  /* עידן - שחור */
+  --person-עידן-bg: linear-gradient(135deg, #09090b, #27272a);
+  --person-עידן-text: #fafafa;
   --person-עידן-border: 2px solid #a1a1aa;
 
-  /* חגי - לבן פנינה נקי */
-  --person-חגי-bg: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  /* חגי - לבן/כסף */
+  --person-חגי-bg: linear-gradient(135deg, #ffffff, #e2e8f0);
   --person-חגי-text: #0f172a;
-  --person-חגי-border: 2px solid #475569;
+  --person-חגי-border: 2px solid #334155;
 
-  /* סתיו - ורוד מג'נטה פאנקי */
-  --person-סתיו-bg: linear-gradient(135deg, #be185d, #ec4899);
+  /* סתיו - מג'נטה */
+  --person-סתיו-bg: linear-gradient(135deg, #9d174d, #db2777);
   --person-סתיו-text: #ffffff;
-  --person-סתיו-border: 2px dashed #fbcfe8;
+  --person-סתיו-border: 2px dashed #f9a8d4;
 
-  /* אסף - סגול-כחול אינדיגו */
-  --person-אסף-bg: linear-gradient(135deg, #3730a3, #4f46e5);
+  /* אסף - אינדיגו */
+  --person-אסף-bg: linear-gradient(135deg, #312e81, #4f46e5);
   --person-אסף-text: #ffffff;
-  --person-אסף-border: 2px solid #c7d2fe;
+  --person-אסף-border: 2px solid #a5b4fc;
 
-  /* ליאני - תכלת שמיים בוהק */
+  /* ליאני - תכלת שמיים */
   --person-ליאני-bg: linear-gradient(135deg, #0284c7, #38bdf8);
   --person-ליאני-text: #ffffff;
-  --person-ליאני-border: 2px solid #bae6fd;
+  --person-ליאני-border: 2px dotted #e0f2fe;
 
-  /* נתי - ירוק זית-זהוב */
-  --person-נתי-bg: linear-gradient(135deg, #3f6212, #65a30d);
+  /* נתי - זית כהה */
+  --person-נתי-bg: linear-gradient(135deg, #365314, #4d7c0f);
   --person-נתי-text: #ffffff;
-  --person-נתי-border: 2px solid #fef08a;
+  --person-נתי-border: 2px solid #bef264;
 
-  /* ערן - אפור פלדה קלאסי */
-  --person-ערן-bg: linear-gradient(135deg, #334155, #64748b);
+  /* ערן - אפור פלדה */
+  --person-ערן-bg: linear-gradient(135deg, #1e293b, #64748b);
   --person-ערן-text: #ffffff;
   --person-ערן-border: 2px solid #cbd5e1;
 
-  /* מאור - צהוב ענבר מודגש במיוחד עם מסגרת זוהרת */
-  --person-מאור-bg: linear-gradient(135deg, #f59e0b, #fbbf24);
-  --person-מאור-text: #1e1b4b;
-  --person-מאור-border: 3px solid #fef08a;
+  /* מאור - צהוב בוהק */
+  --person-מאור-bg: linear-gradient(135deg, #eab308, #fde047);
+  --person-מאור-text: #422006;
+  --person-מאור-border: 3px solid #a16207;
 
-  /* ניר - אדום לוהט */
-  --person-ניר-bg: linear-gradient(135deg, #b91c1c, #ef4444);
+  /* ניר - אדום טהור */
+  --person-ניר-bg: linear-gradient(135deg, #7f1d1d, #dc2626);
   --person-ניר-text: #ffffff;
   --person-ניר-border: 2px dotted #fca5a5;
 
-  /* חורחה - סגול לבנדר מודרני */
-  --person-חורחה-bg: linear-gradient(135deg, #6d28d9, #8b5cf6);
-  --person-חורחה-text: #ffffff;
-  --person-חורחה-border: 2px solid #ddd6fe;
+  /* חורחה - סגול לבנדר בהיר */
+  --person-חורחה-bg: linear-gradient(135deg, #6d28d9, #c4b5fd);
+  --person-חורחה-text: #1e1b4b;
+  --person-חורחה-border: 2px solid #4c1d95;
 
-  /* שלומי - כתום אפרסק בהיר */
-  --person-שלומי-bg: linear-gradient(135deg, #f97316, #fb923c);
-  --person-שלומי-text: #ffffff;
-  --person-שלומי-border: 2px solid #ffedd5;
+  /* שלומי - כתום אפרסק */
+  --person-שלומי-bg: linear-gradient(135deg, #ea580c, #fdba74);
+  --person-שלומי-text: #7c2d12;
+  --person-שלומי-border: 2px solid #9a3412;
 
-  /* יפתח - טורקיז מנטה מודרני */
-  --person-יפתח-bg: linear-gradient(135deg, #0d9488, #2dd4bf);
-  --person-יפתח-text: #042f2e;
-  --person-יפתח-border: 2px solid #99f6e4;
+  /* יפתח - מנטה בהיר (שונה מטורקיז כהה) */
+  --person-יפתח-bg: linear-gradient(135deg, #ccfbf1, #5eead4);
+  --person-יפתח-text: #134e4a;
+  --person-יפתח-border: 2px solid #0f766e;
 
-  /* חברוני - כחול אוקיינוס deep cyan */
-  --person-חברוני-bg: linear-gradient(135deg, #155e75, #06b6d4);
+  /* חברוני - ציאן אוקיינוס */
+  --person-חברוני-bg: linear-gradient(135deg, #155e75, #22d3ee);
   --person-חברוני-text: #ffffff;
   --person-חברוני-border: 2px solid #cffafe;
 
-  /* ויקטור - כתום-אדום אש */
-  --person-ויקטור-bg: linear-gradient(135deg, #c2410c, #dc2626);
+  /* ויקטור - ורמיליון */
+  --person-ויקטור-bg: linear-gradient(135deg, #9a3412, #f97316);
   --person-ויקטור-text: #ffffff;
-  --person-ויקטור-border: 2px dashed #fdba74;
+  --person-ויקטור-border: 2px dashed #fed7aa;
 
-  /* שגיא - ירוק יער עמוק עם מסגרת ליים */
-  --person-שגיא-bg: linear-gradient(135deg, #14532d, #16a34a);
+  /* שגיא - ירוק יער */
+  --person-שגיא-bg: linear-gradient(135deg, #052e16, #15803d);
   --person-שגיא-text: #ffffff;
-  --person-שגיא-border: 2px solid #bef264;
+  --person-שגיא-border: 2px solid #86efac;
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,.08)}
-html,body{margin:0;min-height:100dvh;background:var(--artifact-page);color:var(--artifact-text-primary);font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;-webkit-text-size-adjust:100%;overflow-x:hidden}
-body{padding:14px}
+html,body{
+  margin:0;min-height:100dvh;color:var(--artifact-text-primary);
+  font-family:"Heebo","Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+  -webkit-text-size-adjust:100%;overflow-x:hidden;
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(15,118,110,.16), transparent 55%),
+    radial-gradient(900px 420px at 0% 0%, rgba(3,105,161,.10), transparent 50%),
+    linear-gradient(180deg, #edf5f3 0%, var(--artifact-page) 42%, #e7efed 100%);
+}
+body{padding:18px 16px 28px}
 .app-shell{max-width:var(--artifact-max-width);margin:0 auto}
-.hero{width:fit-content;margin:12px auto 22px;padding:16px 28px;border-radius:999px;background:var(--artifact-surface);color:var(--artifact-accent);border:1px solid var(--artifact-border-light);box-shadow:var(--artifact-shadow);font-size:clamp(1.45rem,2vw,2.2rem);font-weight:800;text-align:center}
-.card{background:var(--artifact-surface);color:var(--artifact-text-primary);border:1px solid var(--artifact-border-light);border-radius:var(--artifact-radius);box-shadow:var(--artifact-shadow-soft);padding:16px;margin-bottom:16px}
-.section-title{margin:0 0 12px;font-size:1.12rem;font-weight:800;color:var(--artifact-accent);text-align:center}
+.hero{
+  width:min(720px,100%);margin:4px auto 22px;padding:22px 28px;
+  border-radius:28px;text-align:center;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0f766e 0%,#0d9488 55%,#155e75 100%);
+  color:#fff;border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 20px 44px rgba(15,118,110,.28);
+}
+.hero::before{
+  content:"";position:absolute;inset:-40% auto auto -20%;width:220px;height:220px;border-radius:50%;
+  background:rgba(255,255,255,.10);pointer-events:none;
+}
+.hero-kicker{display:block;font-size:.82rem;font-weight:700;letter-spacing:.08em;opacity:.85;margin-bottom:6px}
+.hero-title{display:block;font-size:clamp(1.55rem,2.4vw,2.15rem);font-weight:900;line-height:1.2}
+.hero-sub{display:block;margin-top:8px;font-size:.95rem;font-weight:500;opacity:.9}
+.card{
+  background:rgba(255,255,255,.92);color:var(--artifact-text-primary);
+  border:1px solid var(--artifact-border-light);border-radius:var(--artifact-radius);
+  box-shadow:var(--artifact-shadow-soft);padding:18px;margin-bottom:16px;
+  backdrop-filter:blur(8px);
+}
+.card .card{background:var(--artifact-surface);box-shadow:none}
+.section-title{
+  margin:0 0 14px;font-size:1.1rem;font-weight:800;color:var(--artifact-accent);text-align:center;
+  letter-spacing:.01em;position:relative;padding-bottom:10px;
+}
+.section-title::after{
+  content:"";display:block;width:48px;height:3px;margin:8px auto 0;border-radius:999px;
+  background:linear-gradient(90deg,#0f766e,#38bdf8);
+}
 .subtle{margin:6px 0 0;color:var(--artifact-text-secondary);font-size:.94rem;text-align:center}
 .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .row.center{justify-content:center}
 .row.between{justify-content:space-between}
 .label-strong{font-weight:800}
-.input,.select,.date-input{background:var(--artifact-surface);color:var(--artifact-text-primary);border:1px solid var(--artifact-border-dark);border-radius:12px;padding:10px 12px;font-size:14px;outline:none;min-height:44px}
+.input,.select,.date-input{
+  background:var(--artifact-surface);color:var(--artifact-text-primary);
+  border:1px solid var(--artifact-border-dark);border-radius:14px;padding:10px 12px;font-size:14px;
+  outline:none;min-height:44px;font-family:inherit;transition:border-color .15s ease, box-shadow .15s ease;
+}
+.input:focus,.select:focus,.date-input:focus{border-color:var(--artifact-accent);box-shadow:0 0 0 3px rgba(15,118,110,.16)}
 .url-input{direction:ltr;text-align:left;flex:1 1 420px}
-.btn{appearance:none;border:none;border-radius:12px;min-height:44px;padding:10px 16px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:var(--artifact-shadow-soft)}
-.btn-primary{background:var(--artifact-info);color:#fff}
-.btn-success{background:var(--artifact-success);color:#fff}
-.btn-danger{background:var(--artifact-danger);color:#fff}
-.btn-neutral{background:var(--artifact-background-mid);color:var(--artifact-text-primary)}
-.toolbar{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px;margin-top:10px}
-.tool-btn{min-height:96px;border-radius:16px;color:#fff;font-weight:900;font-size:15px;border:none;cursor:pointer;box-shadow:var(--artifact-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.btn{
+  appearance:none;border:none;border-radius:14px;min-height:44px;padding:10px 16px;
+  font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
+  box-shadow:var(--artifact-shadow-soft);transition:transform .15s ease, filter .15s ease, box-shadow .15s ease;
+}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:linear-gradient(135deg,#0369a1,#0284c7);color:#fff}
+.btn-success{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff}
+.btn-danger{background:linear-gradient(135deg,#b91c1c,#dc2626);color:#fff}
+.btn-neutral{background:var(--artifact-background-mid);color:var(--artifact-text-primary);border:1px solid var(--artifact-border-light)}
+.toolbar{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin-top:14px}
+.tool-btn{
+  min-height:98px;border-radius:18px;color:#fff;font-weight:900;font-size:14px;border:none;cursor:pointer;
+  box-shadow:var(--artifact-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  font-family:inherit;transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.tool-btn:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 16px 30px rgba(15,61,54,.18)}
 .tool-btn .icon{font-size:28px;line-height:1}
-.tool-fetch{background:linear-gradient(135deg,#00d2ff,#3a7bd5)}
-.tool-ai{background:linear-gradient(135deg,#667eea,#764ba2)}
-.tool-analyze{background:linear-gradient(135deg,#00b09b,#96c93d)}
-.tool-download{background:linear-gradient(135deg,#0ea5e9,#0284c7)}
-.tool-sheet{background:linear-gradient(135deg,#22c55e,#16a34a)}
-.tool-fair{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
-.grid-wrap,.fairness-table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface)}
+.tool-fetch{background:linear-gradient(145deg,#0891b2,#0369a1)}
+.tool-ai{background:linear-gradient(145deg,#0f766e,#115e59)}
+.tool-analyze{background:linear-gradient(145deg,#059669,#047857)}
+.tool-download{background:linear-gradient(145deg,#0284c7,#075985)}
+.tool-sheet{background:linear-gradient(145deg,#16a34a,#166534)}
+.tool-fair{background:linear-gradient(145deg,#0d9488,#0f766e)}
+.grid-wrap,.fairness-table-wrap{
+  overflow:auto;border-radius:12px;border:3px solid #111;
+  background:var(--artifact-surface);box-shadow:0 0 0 1px #111, var(--artifact-shadow-soft);
+}
 .mode-bar,.url-toggle-row{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
 .url-input-wrap{display:none;flex:1 1 100%}
 .url-input-wrap.open{display:flex}
 table{width:100%;border-collapse:separate;border-spacing:0}
 .excel-grid{min-width:780px;table-layout:fixed;background:var(--artifact-surface)}
-.excel-grid thead th{position:sticky;top:0;z-index:2;background:var(--artifact-accent);color:var(--artifact-accent-text);padding:10px 8px;font-size:.94rem;border-bottom:2px solid var(--artifact-border-dark)}
-.excel-grid th,.excel-grid td{border-right:1px solid var(--artifact-border-light);border-bottom:1px solid var(--artifact-border-light);padding:8px;vertical-align:middle;background:var(--artifact-surface);color:var(--artifact-text-primary)}
-.excel-grid tbody td:first-child{position:sticky;inset-inline-start:0;z-index:1;background:#f8fbff;font-weight:800;width:120px}
-.excel-grid td.cell{min-height:46px;outline:none;cursor:text;white-space:normal;word-break:break-word}
-.excel-grid td.cell:focus{background:var(--artifact-info-soft);color:#12306b;box-shadow:inset 0 0 0 2px rgba(37,99,235,.26)}
+.excel-grid thead th{
+  position:sticky;top:0;z-index:2;background:linear-gradient(180deg,#0f766e,#0d9488);
+  color:var(--artifact-accent-text);padding:12px 8px;font-size:.94rem;
+  border-bottom:2px solid #115e59;letter-spacing:.02em;
+}
+.excel-grid th,.excel-grid td{
+  border-right:1px solid var(--artifact-border-light);border-bottom:1px solid var(--artifact-border-light);
+  padding:8px;vertical-align:middle;background:var(--artifact-surface);color:var(--artifact-text-primary);
+}
+.excel-grid tbody td:first-child{
+  position:sticky;inset-inline-start:0;z-index:1;background:#f0fafa;font-weight:800;width:120px;color:#115e59;
+}
+.excel-grid tbody tr:nth-child(even) td:not(:first-child){background:#fafcfb}
+.excel-grid td.cell{min-height:46px;outline:none;cursor:text;white-space:normal;word-break:break-word;transition:background .12s ease}
+.excel-grid td.cell:focus{background:var(--artifact-info-soft);color:#0c4a6e;box-shadow:inset 0 0 0 2px rgba(3,105,161,.28)}
 .excel-grid td.cell.has-unknown{background:var(--artifact-unknown-bg);color:var(--artifact-unknown-text)}
 .excel-grid td.cell.on-leave-cell{background:var(--artifact-leave-bg);color:var(--artifact-leave-text)}
 .guard-grid{display:grid;grid-template-columns:repeat(8,minmax(82px,1fr));gap:6px;align-items:start}
-.guard-btn{min-height:32px;border-radius:999px;border:1px solid var(--artifact-border-light);background:var(--artifact-guard-bg);color:var(--artifact-guard-text);font-size:13px;font-weight:700;cursor:pointer;padding:4px 8px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:none}
-.guard-btn:hover{transform:translateY(-1px)}
-.guard-btn.active{background:var(--artifact-guard-active-bg);color:var(--artifact-guard-active-text);box-shadow:0 0 0 2px rgba(252,211,77,.22)}
+.guard-btn{
+  min-height:36px;border-radius:999px;border:2px solid var(--artifact-border-dark);
+  background:var(--artifact-guard-bg);color:var(--artifact-guard-text);font-size:13px;font-weight:700;
+  cursor:pointer;padding:6px 12px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:none;font-family:inherit;transition:transform .12s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+  user-select:none;-webkit-user-select:none;
+}
+.guard-btn:hover{transform:translateY(-1px);border-color:var(--artifact-accent)}
+.guard-btn.active{
+  background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#78350f;
+  border-color:#b45309;box-shadow:0 0 0 3px rgba(245,158,11,.35);font-weight:900;
+}
 .guard-picker-card{padding:12px 14px}
-.guard-picker-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface);color:var(--artifact-text-primary);border-radius:14px;padding:10px 12px;cursor:pointer;font:inherit;font-weight:800;box-shadow:var(--artifact-shadow-soft)}
+.guard-picker-toggle{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border:1px solid var(--artifact-border-light);background:linear-gradient(180deg,#fff,#f7fbfa);
+  color:var(--artifact-text-primary);border-radius:16px;padding:12px 14px;cursor:pointer;font:inherit;font-weight:800;
+  box-shadow:var(--artifact-shadow-soft);transition:transform .12s ease;
+}
 .guard-picker-toggle:hover{transform:translateY(-1px)}
-.guard-picker-toggle-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:var(--artifact-guard-bg);color:var(--artifact-guard-text);flex:0 0 auto}
+.guard-picker-toggle-icon{
+  display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;
+  background:var(--artifact-guard-bg);color:var(--artifact-guard-text);flex:0 0 auto;
+}
 .guard-picker-toggle-text{flex:1;text-align:right}
 .guard-picker-chevron{font-size:18px;line-height:1;transition:transform .18s ease}
 .guard-picker-panel{display:none;padding-top:12px}
@@ -227,12 +310,21 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .req-label,.req-control{border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface);padding:10px}
 .req-label{font-weight:800;background:#eef8f7}
 .req-control{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-.req-opt{display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:36px;padding:6px 10px;border-radius:10px;border:1px solid var(--artifact-border-dark);background:var(--artifact-surface);cursor:pointer;font-weight:800}
+.req-opt{
+  display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:36px;padding:6px 10px;
+  border-radius:10px;border:1px solid var(--artifact-border-dark);background:var(--artifact-surface);cursor:pointer;font-weight:800;
+}
 .req-opt.active{background:var(--artifact-success-soft);color:#1b5e20}
 .list{display:grid;gap:8px;margin-top:12px}
-.list-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px;border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface)}
+.list-item{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px;
+  border-radius:12px;border:1px solid var(--artifact-border-light);background:var(--artifact-surface);
+}
 .muted{color:var(--artifact-text-secondary);font-size:.92rem}
-.status-banner{display:none;margin-top:12px;border-radius:12px;padding:12px 14px;text-align:center;font-weight:800;box-shadow:var(--artifact-shadow-soft)}
+.status-banner{
+  display:none;margin-top:12px;border-radius:14px;padding:12px 14px;text-align:center;font-weight:800;
+  box-shadow:var(--artifact-shadow-soft);
+}
 .status-banner.success{background:var(--artifact-success);color:#fff}
 .status-banner.warning{background:var(--artifact-warning);color:#fff}
 .status-banner.error{background:var(--artifact-danger);color:#fff}
@@ -240,14 +332,17 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .results-shell h3{margin:18px 0 10px;color:var(--artifact-accent)}
 .results-info{color:var(--artifact-accent);font-weight:700;margin-bottom:14px}
 .summary-bar,.fairness-summary{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px;margin:0 0 16px}
-.summary-card,.fairness-card{background:var(--artifact-surface);border:1px solid var(--artifact-border-light);border-radius:14px;padding:12px;text-align:center;box-shadow:var(--artifact-shadow-soft)}
+.summary-card,.fairness-card{
+  background:var(--artifact-surface);border:1px solid var(--artifact-border-light);border-radius:16px;
+  padding:14px 12px;text-align:center;box-shadow:var(--artifact-shadow-soft);
+}
 .summary-card .label,.fairness-card .label{display:block;font-size:.86rem;color:var(--artifact-text-secondary);margin-bottom:4px}
-.summary-card .value,.fairness-card .value{display:block;font-size:1.45rem;font-weight:900}
-.summary-card.is-empty{background:var(--artifact-warning-soft)}
-.summary-card.is-exceptions{background:var(--artifact-danger-soft)}
-.summary-card.is-under{background:var(--artifact-info-soft)}
-.summary-card.is-nights{background:var(--artifact-success-soft)}
-.undo-search-bar{display:grid;grid-template-columns:1.3fr auto auto auto auto auto;gap:10px;margin-top:12px;align-items:center}
+.summary-card .value,.fairness-card .value{display:block;font-size:1.5rem;font-weight:900;letter-spacing:-.02em}
+.summary-card.is-empty{background:linear-gradient(180deg,#fff7ed,#ffedd5)}
+.summary-card.is-exceptions{background:linear-gradient(180deg,#fef2f2,#fee2e2)}
+.summary-card.is-under{background:linear-gradient(180deg,#f0f9ff,#e0f2fe)}
+.summary-card.is-nights{background:linear-gradient(180deg,#f0fdf4,#dcfce7)}
+.undo-search-bar{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px;align-items:center}
 .search-status{font-size:.9rem;color:var(--artifact-text-secondary);text-align:center;min-width:80px}
 .fairness-panel{display:none;margin-top:12px;border:1px solid var(--artifact-border-light);background:linear-gradient(180deg,var(--artifact-fair-soft-2),var(--artifact-surface))}
 .fairness-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start}
@@ -255,7 +350,7 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .fairness-section h3{margin:0 0 10px;color:var(--artifact-fair);font-size:1rem;text-align:center}
 .fairness-table{width:100%;border-collapse:collapse;min-width:760px;background:var(--artifact-surface)}
 .fairness-table th,.fairness-table td{border-bottom:1px solid var(--artifact-border-light);border-left:1px solid var(--artifact-border-light);padding:10px 8px;vertical-align:top;text-align:center}
-.fairness-table thead th{position:sticky;top:0;z-index:1;background:var(--artifact-fair);color:#fff}
+.fairness-table thead th{position:sticky;top:0;z-index:1;background:linear-gradient(180deg,#0f766e,#0d9488);color:#fff}
 .reason-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;text-align:right}
 .reason-list li{background:var(--artifact-background-light);border:1px solid var(--artifact-border-light);border-radius:10px;padding:6px 8px;font-size:.9rem}
 .pill{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:4px 10px;border-radius:999px;font-size:.8rem;font-weight:800;border:1px solid transparent;white-space:nowrap}
@@ -263,14 +358,23 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .pill.warn{background:var(--artifact-warning-soft);color:#9a3412}
 .pill.bad{background:var(--artifact-danger-soft);color:#991b1b}
 .empty-state{padding:18px 12px;text-align:center;color:var(--artifact-text-secondary)}
-.schedule-table{width:100%;min-width:var(--artifact-table-min-width);table-layout:fixed;border-collapse:collapse;background:var(--artifact-surface);color:var(--artifact-text-primary);border:2px solid var(--artifact-border-dark);border-radius:14px;overflow:hidden;box-shadow:var(--artifact-shadow-soft)}
+.schedule-table{
+  width:100%;min-width:var(--artifact-table-min-width);table-layout:fixed;border-collapse:collapse;
+  background:var(--artifact-surface);color:var(--artifact-text-primary);
+  border:3px solid #111;border-radius:12px;overflow:hidden;
+  box-shadow:0 0 0 1px #111, var(--artifact-shadow);
+}
 .schedule-table col.time-col{width:var(--artifact-time-col-width)}
-.schedule-table th,.schedule-table td{border:1px solid var(--artifact-border-dark);padding:8px 6px;min-height:52px;vertical-align:top;overflow:hidden}
-.schedule-table thead{background:var(--artifact-accent);color:var(--artifact-accent-text)}
-.schedule-table thead th{position:sticky;top:0;z-index:2;padding:6px 6px;text-align:center}
+.schedule-table th,.schedule-table td{border:1px solid var(--artifact-border-light);padding:8px 6px;min-height:52px;vertical-align:top;overflow:hidden}
+.schedule-table thead{background:linear-gradient(180deg,#0f766e,#0d9488);color:var(--artifact-accent-text)}
+.schedule-table thead th{position:sticky;top:0;z-index:2;padding:8px 6px;text-align:center}
 .schedule-table thead th[rowspan="2"]{font-size:.96rem;line-height:1.1;white-space:normal;vertical-align:middle;width:var(--artifact-time-col-width)}
 .schedule-table td.editing-cell{background:#fff8e1!important;color:#5d4037!important;outline:2px dashed var(--artifact-warning);outline-offset:-2px}
-.time-slot{background:var(--artifact-accent-2)!important;color:var(--artifact-accent-2-text)!important;font-size:.96rem;font-weight:800;text-align:center;vertical-align:middle!important;line-height:1.1;direction:ltr;width:var(--artifact-time-col-width);min-width:var(--artifact-time-col-width);max-width:var(--artifact-time-col-width);padding:10px 4px!important}
+.time-slot{
+  background:linear-gradient(180deg,#ccfbf1,#99f6e4)!important;color:var(--artifact-accent-2-text)!important;
+  font-size:.96rem;font-weight:800;text-align:center;vertical-align:middle!important;line-height:1.1;direction:ltr;
+  width:var(--artifact-time-col-width);min-width:var(--artifact-time-col-width);max-width:var(--artifact-time-col-width);padding:10px 4px!important;
+}
 .time-slot-wrap{display:flex;flex-direction:column;align-items:center;gap:5px}
 .time-slot-icon{font-size:1.15rem;line-height:1}
 .friday-col,.saturday-col{background:var(--artifact-weekend-bg)!important;color:var(--artifact-weekend-text)!important}
@@ -282,58 +386,25 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .badge.extra{background:var(--artifact-info-soft);color:#12306b}
 .badge.rest{background:var(--artifact-danger-soft);color:#8f1f1f}
 .badge.leave{background:#eef2f7;color:#475569}
-
-/* עיצוב אליפסה מורחב ומוגדל לכל תגית שומר */
 .person{
-  display:block;
-  width:fit-content;
-  max-width:100%;
-  margin:6px auto;
-  padding:10px 22px; /* ריפוד מוגדל */
-  border-radius:999px; /* אליפסה מעוגלת */
-  text-align:center;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  font-size:clamp(1.25em, 1.2vw + 1.05em, 1.55em); /* גודל פונט מוגדל */
-  line-height:1.1;
-  font-weight:900; /* פונט מודגש במיוחד */
-  letter-spacing:.3px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-  user-select:none;
-  cursor:pointer;
-  background:var(--artifact-surface-muted);
-  color:var(--artifact-text-primary);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  display:block;width:fit-content;max-width:100%;margin:6px auto;padding:10px 22px;border-radius:999px;
+  text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:clamp(1.25em, 1.2vw + 1.05em, 1.55em);line-height:1.1;font-weight:900;letter-spacing:.3px;
+  box-shadow:0 6px 14px rgba(0,0,0,.16);text-shadow:0 1px 2px rgba(0,0,0,.35);user-select:none;cursor:pointer;
+  background:var(--artifact-surface-muted);color:var(--artifact-text-primary);
+  transition:transform .2s ease, box-shadow .2s ease, filter .2s ease;
 }
-
-/* אפקט Hover מודגש במיוחד (כולל הילה) */
-.person:hover {
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.85), 0 6px 20px rgba(0,0,0,0.3);
-  filter: brightness(1.15);
-  z-index: 3;
+.person:hover{transform:scale(1.08) translateY(-2px);box-shadow:0 0 14px rgba(255,255,255,.85),0 8px 22px rgba(0,0,0,.28);filter:brightness(1.12);z-index:3}
+.person.highlight-name{
+  position:relative;z-index:5;opacity:1!important;filter:none!important;transform:scale(1.14);
+  box-shadow:0 0 0 3px #ffffff,0 0 18px rgba(245,158,11,.85),0 12px 24px rgba(0,0,0,.32);
 }
-
-/* הדגשה בזמן מעבר/לחיצה על השם (Highlight/Spotlight) */
-.person.highlight-name {
-  position:relative;
-  z-index:5;
-  opacity:1!important;
-  filter:none!important;
-  transform:scale(1.14);
-  box-shadow: 0 0 0 3px #ffffff, 0 0 18px rgba(245, 158, 11, 0.85), 0 12px 24px rgba(0,0,0,0.32);
-}
-
 .spotlight-active .person:not(.highlight-name){opacity:var(--artifact-person-dim);filter:grayscale(60%) saturate(70%)}
 .person.search-match{box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 0 6px rgba(37,99,235,.32),0 10px 18px rgba(0,0,0,.2)}
 .person.search-current{transform:scale(1.08);box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 0 7px rgba(234,88,12,.4),0 12px 22px rgba(0,0,0,.25)}
 .person.unknown-name{background:var(--artifact-unknown-bg);color:var(--artifact-unknown-text);border-style:dashed}
 .person.on-leave{background:var(--artifact-leave-bg)!important;color:var(--artifact-leave-text)!important;border-style:dashed!important;text-decoration:line-through}
 .person.on-leave::after{content:" ⛱️"}
-
-/* שיוך צבעים ומסגרות לכל שומר */
 .person.color-אמיר{background:var(--person-אמיר-bg);color:var(--person-אמיר-text);border:var(--person-אמיר-border);}
 .person.color-נמרוד{background:var(--person-נמרוד-bg);color:var(--person-נמרוד-text);border:var(--person-נמרוד-border);}
 .person.color-יובי{background:var(--person-יובי-bg);color:var(--person-יובי-text);border:var(--person-יובי-border);}
@@ -357,10 +428,13 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .person.color-חברוני{background:var(--person-חברוני-bg);color:var(--person-חברוני-text);border:var(--person-חברוני-border);}
 .person.color-ויקטור{background:var(--person-ויקטור-bg);color:var(--person-ויקטור-text);border:var(--person-ויקטור-border);}
 .person.color-שגיא{background:var(--person-שגיא-bg);color:var(--person-שגיא-text);border:var(--person-שגיא-border);}
-
-.summary-table,.exceptions-table{width:min(1200px,100%);margin:24px auto;border-collapse:separate;border-spacing:0;background:var(--artifact-surface);border:1px solid var(--artifact-border-light);border-radius:14px;overflow:hidden;box-shadow:var(--artifact-shadow-soft)}
-.summary-table thead{background:var(--artifact-accent);color:#fff}
-.exceptions-table thead{background:var(--artifact-danger);color:#fff}
+.summary-table,.exceptions-table{
+  width:min(1200px,100%);margin:24px auto;border-collapse:separate;border-spacing:0;
+  background:var(--artifact-surface);border:3px solid #111;border-radius:12px;overflow:hidden;
+  box-shadow:0 0 0 1px #111, var(--artifact-shadow-soft);
+}
+.summary-table thead{background:linear-gradient(180deg,#0f766e,#0d9488);color:#fff}
+.exceptions-table thead{background:linear-gradient(180deg,#b91c1c,#dc2626);color:#fff}
 .summary-table th,.summary-table td,.exceptions-table th,.exceptions-table td{padding:14px 10px;text-align:center;border-bottom:1px solid var(--artifact-border-light)}
 .shifts-5-count{background:var(--artifact-info-soft);color:#12306b;font-weight:800}
 .shifts-4-count{background:var(--artifact-success-soft);color:#1b5e20;font-weight:800}
@@ -369,15 +443,15 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .night-limit-fail-row{background:var(--artifact-danger-soft);color:#8f1f1f}
 .night-limit-ok{color:var(--artifact-success);font-weight:800}
 .night-limit-fail{color:var(--artifact-danger);font-weight:800}
-
 @media (max-width:1280px){
   .toolbar{grid-template-columns:repeat(3,minmax(120px,1fr))}
   .summary-bar,.fairness-summary{grid-template-columns:repeat(2,minmax(160px,1fr))}
   .fairness-layout{grid-template-columns:1fr}
-  .undo-search-bar{grid-template-columns:1fr 1fr 1fr}
+  .undo-search-bar{grid-template-columns:1fr}
 }
 @media (max-width:768px){
   body{padding:10px}
+  .hero{padding:18px 16px;border-radius:22px}
   .toolbar,.req-grid,.summary-bar,.fairness-summary,.undo-search-bar{grid-template-columns:1fr}
   .guard-grid{grid-template-columns:repeat(4,minmax(72px,1fr))}
   .schedule-table{min-width:900px}
@@ -387,10 +461,14 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 </head>
 <body>
   <div class="app-shell">
-    <div class="hero">מנתח טבלת משמרות 📅</div>
+    <header class="hero">
+      <span class="hero-kicker">QRF · GUARD ROSTER</span>
+      <span class="hero-title">מנתח טבלת משמרות</span>
+      <span class="hero-sub">סידור וניתוח משמרות — במבט אחד</span>
+    </header>
 
     <section class="card">
-      <h2 class="section-title">נתוני משמרות לעריכה ומקור הנתונים 📝</h2>
+      <h2 class="section-title">נתוני משמרות לעריכה ומקור הנתונים</h2>
 
       <div class="card">
         <div class="row between">
@@ -400,20 +478,10 @@ table{width:100%;border-collapse:separate;border-spacing:0}
             <input type="date" id="startDate" class="date-input" />
           </div>
           <div class="row mobile-inline">
-            <button id="btnExcelAuto" type="button" class="btn btn-primary">סדר אוטומטי ↻</button>
+            <button id="btnExcelUpdate" type="button" class="btn btn-primary">עדכן</button>
             <button id="btnExcelClear" type="button" class="btn btn-danger">נקה</button>
           </div>
         </div>
-
-        <div class="undo-search-bar">
-          <input id="guardSearchInput" type="text" class="input" placeholder="חפש שומר..." />
-          <button id="searchPrevBtn" class="btn btn-neutral" type="button">הקודם</button>
-          <button id="searchNextBtn" class="btn btn-neutral" type="button">הבא</button>
-          <button id="clearSearchBtn" class="btn btn-neutral" type="button">נקה חיפוש</button>
-          <button id="undoBtn" class="btn btn-neutral" type="button">↶ Undo</button>
-          <button id="redoBtn" class="btn btn-neutral" type="button">↷ Redo</button>
-        </div>
-        <div id="searchStatus" class="search-status">אין חיפוש פעיל</div>
 
         <div class="grid-wrap" style="margin-top:12px;">
           <table id="excel-grid" class="excel-grid" dir="rtl"></table>
@@ -422,13 +490,12 @@ table{width:100%;border-collapse:separate;border-spacing:0}
       </div>
 
       <div class="card">
-        <h3 class="section-title">משיכת נתונים מ‑Google Sheet Web App ☁️</h3>
-        <p class="subtle">ה־URL מוסתר כברירת מחדל כדי לשמור על מסך נקי. לחץ על URL כדי לפתוח אותו.</p>
+        <h3 class="section-title">מקור Google Sheet</h3>
+        <p class="subtle">ה־URL מוסתר כברירת מחדל. משיכה מהסרגל למעלה גם מסדרת אוטומטית.</p>
         <div class="url-toggle-row">
           <button id="toggleUrlButton" class="btn btn-neutral url-toggle-btn" type="button">🔗 URL</button>
-          <button id="fetchFromSheetButton" class="btn btn-success" type="button">משוך נתונים 🔄</button>
           <div id="urlInputWrap" class="url-input-wrap">
-            <input id="googleSheetUrl" type="text" class="input url-input" placeholder="https://script.google.com/macros/s/.../exec" />
+            <input id="googleSheetUrl" type="text" class="input url-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit" />
           </div>
         </div>
         <p id="fetchStatus" class="subtle" style="display:none;"></p>
@@ -441,7 +508,7 @@ table{width:100%;border-collapse:separate;border-spacing:0}
           <span id="guardPickerChevron" class="guard-picker-chevron">⌄</span>
         </button>
         <div id="guardPickerPanel" class="guard-picker-panel">
-          <p class="subtle guard-picker-subtle">לחץ על השומרים שצריכים לקבל קדימות כדי להגיע ליעד.</p>
+          <p class="subtle guard-picker-subtle">לחץ לסימון שומרים שמקבלים קדימות ליעד 4–5. הסימון משפיע בעיקר במצב «עדיפות לשומרים מסומנים» (נבחר אוטומטית בלחיצה).</p>
           <div id="guardButtonsContainer" class="guard-grid"></div>
         </div>
       </div>
@@ -456,25 +523,14 @@ table{width:100%;border-collapse:separate;border-spacing:0}
       </div>
 
       <div class="toolbar">
-        <button id="quickFetchButton" class="tool-btn tool-fetch"><span class="icon">🔄</span><span>משוך נתונים</span></button>
-        <button id="autoScheduleButton" class="tool-btn tool-ai"><span class="icon">🤖</span><span>סדר אוטומטי</span></button>
-        <button id="analyzeButton" class="tool-btn tool-analyze"><span class="icon">🔍</span><span>נתח נתונים</span></button>
+        <button id="quickFetchButton" class="tool-btn tool-fetch"><span class="icon">🔄</span><span>משוך וסדר</span></button>
+        <button id="autoScheduleButton" class="tool-btn tool-ai"><span class="icon">🤖</span><span>סדר מחדש</span></button>
         <button id="downloadHtmlButton" class="tool-btn tool-download"><span class="icon">💾</span><span>הורד HTML</span></button>
-        <button id="openSheetButton" class="tool-btn tool-sheet"><span class="icon">📄</span><span>פתח גיליון נתונים</span></button>
-        <button id="toggleFairnessButton" class="tool-btn tool-fair"><span class="icon">⚖️</span><span>פאנל הוגנות</span></button>
-      </div>
-
-      <div id="fairnessPanel" class="card fairness-panel">
-        <div class="row between">
-          <div class="label-strong">פאנל הוגנות וחריגות</div>
-          <button id="fairnessCloseBtn" type="button" class="btn btn-neutral">סגור</button>
-        </div>
-        <div id="fairnessContent" class="subtle" style="margin-top:12px;">בצע ניתוח כדי לראות הסבר למה כל תא/עובד מסומן.</div>
+        <button id="openSheetButton" class="tool-btn tool-sheet"><span class="icon">📄</span><span>פתח גיליון</span></button>
       </div>
 
       <div class="row center" style="margin-top:14px;">
         <button id="openShiftReqBtn" class="btn btn-neutral">⚙️ הגדרות דרישות משמרות</button>
-        <button id="openVacationsBtn" class="btn btn-neutral">🗓️ הגדרות חופשות</button>
       </div>
 
       <div id="shiftReqPanel" class="card collapsible">
@@ -495,51 +551,14 @@ table{width:100%;border-collapse:separate;border-spacing:0}
         <div class="subtle">ברירת המחדל היא שומר אחד בכל משמרת. אפשר להגדיר 2 שומרים בכל משבצת שצריך.</div>
       </div>
 
-      <div id="vacationsPanel" class="card collapsible">
-        <div class="row between">
-          <div class="label-strong">חופשות / מילואים</div>
-          <div class="row mobile-inline">
-            <label class="muted"><input id="leaveScopeWeek" type="checkbox" /> שמור לפי שבוע</label>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:12px;">
-          <label class="label-strong">שם:
-            <input id="leaveNameInput" type="text" class="input" placeholder="שם עובד" />
-          </label>
-          <label class="label-strong">מ־
-            <input id="leaveFromInput" type="date" class="date-input" />
-          </label>
-          <label class="label-strong">עד
-            <input id="leaveToInput" type="date" class="date-input" />
-          </label>
-          <button id="leaveAddBtn" class="btn btn-primary" type="button">הוסף/עדכן</button>
-          <button id="leaveClearBtn" class="btn btn-danger" type="button">מחק</button>
-        </div>
-
-        <div id="vacationsList" class="list"></div>
-      </div>
-
       <div id="statusBanner" class="status-banner"></div>
 
       <div id="resultsContainer" class="card results-shell">
-        <p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>
+        <p id="initialMessage">לחץ על «משוך וסדר» או הדבק זמינות לטבלה ולחץ «סדר מחדש».</p>
       </div>
     </section>
   </div>
 
   <script type="module" src="./main.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded",function(){
-  const toggle=document.getElementById("toggleGuardPickerButton");
-  const panel=document.getElementById("guardPickerPanel");
-  if(!toggle||!panel) return;
-  toggle.addEventListener("click",function(){
-    const isOpen=panel.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", String(isOpen));
-  });
-});
-</script>
 </body>
 </html>
