@@ -1,5 +1,6 @@
 export function showStatus(message, type = "success") {
   const el = this.el.statusBanner;
+  if (!el) return;
   clearTimeout(this.state.statusTimer);
   el.className = `status-banner ${type}`;
   el.textContent = message;
@@ -8,4 +9,3 @@ export function showStatus(message, type = "success") {
     el.style.display = "none";
   }, 4000);
 }
-

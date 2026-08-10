@@ -1,15 +1,28 @@
+export function hoursBetweenShifts(prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx) {
+  const bounds = this.C.SHIFT_HOUR_BOUNDS;
+  const prev = bounds[prevShiftIdx];
+  const next = bounds[nextShiftIdx];
+  if (!prev || !next) return -Infinity;
+  const prevEnd = Number(prevDayIdx) * 24 + prev.end;
+  const nextStart = Number(nextDayIdx) * 24 + next.start;
+  return nextStart - prevEnd;
+}
+
+export function hasMinRestBetween(prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx, minHours) {
+  const min = Number(minHours ?? this.C.RULES.MIN_REST_HOURS ?? 8);
+  return this.hoursBetweenShifts(prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx) >= min;
+}
+
 export function nextAllowedSameDayAfter(index) {
-  const I = this.C.SHIFT_INDEX;
-  switch (index) {
-    case I.NIGHT_2_6: return I.AFTERNOON_14_18;
-    case I.MORNING_6_10: return I.EVENING_18_22;
-    case I.MORNING_10_14: return I.NIGHT_22_2;
-    default: return Infinity;
+  // Derived from MIN_REST_HOURS against same-day later slots.
+  for (let next = index + 1; next < this.C.TIME_SLOTS.length; next++) {
+    if (this.hasMinRestBetween(0, index, 0, next)) return next;
   }
+  return Infinity;
 }
 
 export function isLessThan8SameDay(prevIdx, curIdx) {
-  return curIdx < this.nextAllowedSameDayAfter(prevIdx);
+  return !this.hasMinRestBetween(0, prevIdx, 0, curIdx);
 }
 
 export function parseScheduleText(text) {
@@ -73,9 +86,9 @@ export function calculateScheduleInsights(scheduleData, days) {
   const I = this.C.SHIFT_INDEX;
   const allShifts = {};
   const night2to6Count = {};
-  const dailyCheck = {};
   const exceptions = [];
   const cellFlags = {};
+  const assignmentsByName = {};
 
   const markCellFlag = (day, slot, flag) => {
     const key = `${day}__${slot}`;
@@ -87,22 +100,12 @@ export function calculateScheduleInsights(scheduleData, days) {
     row.forEach((cell, colIdx) => {
       const day = days[colIdx];
       const names = this.splitCellNames(cell || "");
-      const slot = this.C.TIME_SLOTS[rowIdx].replace(" (Night)", "");
-      dailyCheck[day] ||= new Set();
 
       names.forEach((name) => {
-        if (dailyCheck[day].has(name)) {
-          for (let prev = 0; prev < rowIdx; prev++) {
-            const prevNames = this.splitCellNames(scheduleData[prev][colIdx] || "");
-            if (prevNames.includes(name) && this.isLessThan8SameDay(prev, rowIdx)) {
-              exceptions.push({ day, slot: this.C.TIME_SLOTS[rowIdx], name, msg: "פחות מ־8 שעות מנוחה בין משמרות באותו יום" });
-              markCellFlag(day, slot, "rest");
-              break;
-            }
-          }
-        }
-        dailyCheck[day].add(name);
         allShifts[name] = (allShifts[name] || 0) + 1;
+        assignmentsByName[name] ||= [];
+        assignmentsByName[name].push({ dayIdx: colIdx, shiftIdx: rowIdx, day, slot: this.C.TIME_SLOTS[rowIdx] });
+
         if (rowIdx === I.NIGHT_2_6) {
           night2to6Count[name] = (night2to6Count[name] || 0) + 1;
           if (night2to6Count[name] > this.C.RULES.MAX_NIGHT_2_6) {
@@ -110,42 +113,25 @@ export function calculateScheduleInsights(scheduleData, days) {
           }
         }
       });
-
-      if (colIdx > 0 && rowIdx === I.MORNING_6_10) {
-        const prevNight = this.splitCellNames(scheduleData[I.NIGHT_22_2][colIdx - 1] || "");
-        names.forEach((name) => {
-          if (prevNight.includes(name)) {
-            exceptions.push({ day, slot: this.C.TIME_SLOTS[rowIdx], name, msg: "פחות מ־8 שעות: 22–02 אתמול → 06–10 היום" });
-            markCellFlag(day, slot, "rest");
-          }
-        });
-      }
-
-      if (rowIdx === I.MORNING_6_10 || rowIdx === I.MORNING_10_14) {
-        const nightNames = this.splitCellNames(scheduleData[I.NIGHT_2_6][colIdx] || "");
-        names.forEach((name) => {
-          if (nightNames.includes(name)) {
-            exceptions.push({ day, slot: this.C.TIME_SLOTS[rowIdx], name, msg: "פחות מ־8 שעות: 02–06 → מוקדם מדי באותו יום" });
-            markCellFlag(day, slot, "rest");
-          }
-        });
-      }
-
-      if (rowIdx === I.NIGHT_2_6 && colIdx > 0) {
-        const prevNight = this.splitCellNames(scheduleData[I.NIGHT_22_2][colIdx - 1] || "");
-        const prevEvening = this.splitCellNames(scheduleData[I.EVENING_18_22][colIdx - 1] || "");
-        names.forEach((name) => {
-          if (prevNight.includes(name)) {
-            exceptions.push({ day, slot: this.C.TIME_SLOTS[rowIdx], name, msg: "אסור רצף לילות: 22–02 אתמול → 02–06 היום" });
-            markCellFlag(day, slot, "rest");
-          }
-          if (prevEvening.includes(name)) {
-            exceptions.push({ day, slot: this.C.TIME_SLOTS[rowIdx], name, msg: "פחות מ־8 שעות: 18–22 אתמול → 02–06 היום" });
-            markCellFlag(day, slot, "rest");
-          }
-        });
-      }
     });
+  });
+
+  // Rest rule: warn on < MIN_REST_HOURS between consecutive assignments.
+  // Manual edits are allowed — we only flag, never block.
+  Object.entries(assignmentsByName).forEach(([name, list]) => {
+    list.sort((a, b) => (a.dayIdx - b.dayIdx) || (a.shiftIdx - b.shiftIdx));
+    for (let i = 1; i < list.length; i++) {
+      const prev = list[i - 1];
+      const cur = list[i];
+      if (this.hasMinRestBetween(prev.dayIdx, prev.shiftIdx, cur.dayIdx, cur.shiftIdx)) continue;
+      const hours = this.hoursBetweenShifts(prev.dayIdx, prev.shiftIdx, cur.dayIdx, cur.shiftIdx);
+      const sameDay = prev.dayIdx === cur.dayIdx;
+      const msg = sameDay
+        ? `פחות מ־${this.C.RULES.MIN_REST_HOURS} שעות בין משמרות באותו יום (${hours} שע׳)`
+        : `פחות מ־${this.C.RULES.MIN_REST_HOURS} שעות בין משמרות רצופות (${hours} שע׳)`;
+      exceptions.push({ day: cur.day, slot: cur.slot, name, msg });
+      markCellFlag(cur.day, cur.slot.replace(" (Night)", ""), "rest");
+    }
   });
 
   return { allShifts, night2to6Count, exceptions, cellFlags };
@@ -176,7 +162,7 @@ export function getCellReasonParts(day, slot, names, required, dayIso, cellFlags
   else if (names.length > required) reasons.push(`יש עודף של ${names.length - required} שומרים (נדרשים ${required}).`);
   if (leaveNames.length) reasons.push(`מסומנים בחופשה/מילואים: ${leaveNames.join(", ")}.`);
   const key = `${day}__${slot}`;
-  if (cellFlags[key]?.has("rest")) reasons.push("קיימת התנגשות עם חוק המנוחה במשבצת הזאת.");
+  if (cellFlags[key]?.has("rest")) reasons.push("קיימת התנגשות עם כלל ההפרש המינימלי בין משמרות במשבצת הזאת.");
   return reasons;
 }
 

@@ -4,6 +4,7 @@ import {
   RULES,
   SHEET_URL,
   SHIFT_INDEX,
+  SHIFT_HOUR_BOUNDS,
   HEB_DAYS,
   TIME_SLOTS,
   SLOT_ICONS,
@@ -19,7 +20,7 @@ import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
 import { showStatus } from "./ui/status-banner.js";
 import { createExcelGrid, syncRenderedTableBackToMatrix, refreshAfterDataChange } from "./features/grid.js";
-import { nextAllowedSameDayAfter, isLessThan8SameDay, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js";
+import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js";
 import { renderFairnessPanel } from "./ui/fairness-panel.js";
 import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js";
 import { updateHighlights, updateSearchHighlights, focusSearchMatch, navigateSearch } from "./features/search.js";
@@ -39,6 +40,7 @@ const App = {
     RULES,
     SHEET_URL,
     SHIFT_INDEX,
+    SHIFT_HOUR_BOUNDS,
     HEB_DAYS,
     TIME_SLOTS,
     SLOT_ICONS,
@@ -56,6 +58,7 @@ const App = {
     redoStack: [],
     searchMatches: [],
     currentSearchIndex: -1,
+    priorityGuards: [],
   },
   el: {},
 
@@ -89,6 +92,8 @@ const App = {
   refreshAfterDataChange,
   nextAllowedSameDayAfter,
   isLessThan8SameDay,
+  hoursBetweenShifts,
+  hasMinRestBetween,
   parseScheduleText,
   serializeMatrixToVerticalText,
   calculateScheduleInsights,
@@ -157,7 +162,7 @@ const App = {
       excelMatrix: this.state.excelMatrix,
       startDate: this.el.startDate.value,
       lockedName: this.state.lockedName,
-      searchQuery: this.el.guardSearchInput.value,
+      searchQuery: "",
     });
 
     this.updateUndoRedoButtons();
@@ -173,6 +178,29 @@ const App = {
       startDate: this.el.startDate.value,
     });
     this.persistFullState();
+  },
+
+  updateScheduleFromGrid() {
+    const active = document.activeElement?.closest?.("#excel-grid td.cell");
+    if (active) {
+      const r = Number(active.dataset.r);
+      const c = Number(active.dataset.c);
+      if (Number.isInteger(r) && Number.isInteger(c)) {
+        this.state.excelMatrix[r][c] = this.ExcelGrid.normalizeCellValue(active.innerText);
+      }
+      active.blur();
+    }
+    this.ExcelGrid.validateAllGridCells();
+    const text = this.serializeMatrixToVerticalText();
+    if (!text.trim()) {
+      this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: null, startDate: this.el.startDate.value });
+      this.persistFullState();
+      this.showStatus("הטבלה ריקה — אין מה לעדכן.", "warning");
+      return;
+    }
+    this.handleAnalyze();
+    this.showStatus("הטבלה התחתונה עודכנה לפי השינויים למעלה.", "success");
+    this.el.resultsContainer?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
   },
 
   startCellEditing(td) {
@@ -191,6 +219,7 @@ const App = {
     td.dataset.editing = "0";
     td.classList.remove("editing-cell");
     this.syncRenderedTableBackToMatrix();
+    this.handleAnalyze();
     this.persistFullState();
   },
 
@@ -219,15 +248,31 @@ const App = {
 
   renderGuardButtons() {
     const names = this.allEmployeeNames();
+    const selected = new Set((this.state.priorityGuards || []).map((n) => this.normalizeKey(n)));
     this.el.guardButtonsContainer.innerHTML = "";
     names.forEach((name) => {
+      const clean = this.normalizeKey(name);
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "guard-btn";
       btn.textContent = name;
-      btn.addEventListener("click", () => {
-        this.pushUndoSnapshot();
-        btn.classList.toggle("active");
+      btn.dataset.name = clean;
+      btn.setAttribute("aria-pressed", selected.has(clean) ? "true" : "false");
+      if (selected.has(clean)) btn.classList.add("active");
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const set = new Set((this.state.priorityGuards || []).map((n) => this.normalizeKey(n)));
+        if (set.has(clean)) set.delete(clean);
+        else set.add(clean);
+        this.state.priorityGuards = Array.from(set);
+        const on = set.has(clean);
+        btn.classList.toggle("active", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        if (set.size && this.el.autoMode?.value === "balanced") {
+          this.el.autoMode.value = "priority";
+          this.showStatus("מצב הסידור הועבר ל«עדיפות לשומרים מסומנים».", "success");
+        }
         this.persistFullState();
       });
       this.el.guardButtonsContainer.appendChild(btn);
@@ -235,7 +280,7 @@ const App = {
   },
 
   getPriorityGuardSet() {
-    return new Set(Array.from(this.el.guardButtonsContainer.querySelectorAll(".guard-btn.active")).map((btn) => this.normalizeKey(btn.textContent)).filter(Boolean));
+    return new Set((this.state.priorityGuards || []).map((n) => this.normalizeKey(n)).filter(Boolean));
   },
 
   renderApp(state) {
@@ -254,7 +299,7 @@ const App = {
         this.el.guardSearchInput.value = state.searchQuery;
       }
       if (state.parsedData) this.renderScheduleView(state.parsedData);
-      else if (this.el.resultsContainer) this.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה-Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;
+      else if (this.el.resultsContainer) this.el.resultsContainer.innerHTML = `<p id="initialMessage">לחץ על «משוך וסדר» או הדבק זמינות לטבלה ולחץ «סדר מחדש».</p>`;
       this.updateHighlights(state.lockedName);
       this.updateSearchHighlights();
     } finally {

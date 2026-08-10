@@ -8,8 +8,8 @@ export function pushUndoSnapshot() {
 }
 
 export function updateUndoRedoButtons() {
-  this.el.undoBtn.disabled = this.state.undoStack.length === 0;
-  this.el.redoBtn.disabled = this.state.redoStack.length === 0;
+  if (this.el.undoBtn) this.el.undoBtn.disabled = this.state.undoStack.length === 0;
+  if (this.el.redoBtn) this.el.redoBtn.disabled = this.state.redoStack.length === 0;
 }
 
 export function undo() {

@@ -1,5 +1,6 @@
 export function renderExcelGrid(app) {
   const table = app.el["excel-grid"];
+  if (!table) return;
   const dayShort = app.state.expectedDays.map((day) => day.replace("יום ", ""));
   let html = "<thead><tr><th>שעות / יום</th>";
   dayShort.forEach((day) => { html += `<th>${app.escapeHtml(day)}</th>`; });

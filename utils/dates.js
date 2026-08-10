@@ -35,9 +35,10 @@ export function initializeData() {
   this.el.startDate.value = this.computeUpcomingWeekStartIso();
   try {
     const savedUrl = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL);
-    this.el.googleSheetUrl.value = savedUrl || this.C.DEFAULT_WEB_APP_URL;
+    const useSaved = savedUrl && /docs\.google\.com\/spreadsheets\/d\//i.test(savedUrl);
+    this.el.googleSheetUrl.value = useSaved ? savedUrl : this.C.SHEET_URL;
   } catch {
-    this.el.googleSheetUrl.value = this.C.DEFAULT_WEB_APP_URL;
+    this.el.googleSheetUrl.value = this.C.SHEET_URL;
   }
 }
 
@@ -49,6 +50,7 @@ export function getHebDayNameFromIso(isoDate) {
 }
 
 export function updateStartDateLabelBySetting() {
+  if (!this.el.startDateLabel) return;
   const day = this.getHebDayNameFromIso(this.el.startDate.value);
   this.el.startDateLabel.textContent = day ? `תאריך תחילת שבוע (${day}):` : "תאריך תחילת שבוע:";
 }
