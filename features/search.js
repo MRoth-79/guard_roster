@@ -3,8 +3,9 @@ export function updateHighlights(name) {
   if (!root) return;
   if (name) root.classList.add("spotlight-active");
   else root.classList.remove("spotlight-active");
+  const locked = name ? this.normalizeKey(name) : "";
   root.querySelectorAll(".person").forEach((el) => {
-    el.classList.toggle("highlight-name", el.textContent.trim() === name);
+    el.classList.toggle("highlight-name", !!locked && this.normalizeKey(el.textContent) === locked);
   });
 }
 
@@ -24,6 +25,8 @@ export function updateSearchHighlights() {
     });
   }
 
+  if (!this.el.searchStatus) return;
+
   if (this.state.searchMatches.length) {
     this.state.currentSearchIndex = 0;
     this.focusSearchMatch();
@@ -40,7 +43,9 @@ export function focusSearchMatch() {
   if (!current) return;
   current.classList.add("search-current");
   current.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-  this.el.searchStatus.textContent = `${this.state.currentSearchIndex + 1}/${this.state.searchMatches.length}`;
+  if (this.el.searchStatus) {
+    this.el.searchStatus.textContent = `${this.state.currentSearchIndex + 1}/${this.state.searchMatches.length}`;
+  }
 }
 
 export function navigateSearch(step) {
