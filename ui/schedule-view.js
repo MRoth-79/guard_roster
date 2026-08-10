@@ -16,7 +16,7 @@ export function renderCellBadges(day, slot, names, required, dayIso, cellFlags) 
   else if (names.length > required) badges.push(`<span class="badge extra">עודף</span>`);
   if (names.some((name) => this.isOnVacation(name, dayIso))) badges.push(`<span class="badge leave">חופשה</span>`);
   const key = `${day}__${slot}`;
-  if (cellFlags[key]?.has("rest")) badges.push(`<span class="badge rest">מנוחה</span>`);
+  if (cellFlags[key]?.has("rest")) badges.push(`<span class="badge rest">הפרש &lt;8 שע׳</span>`);
   return badges.length ? `<div class="cell-badges">${badges.join("")}</div>` : "";
 }
 
@@ -105,19 +105,17 @@ export function renderMainScheduleTable(parsed, datesForWeek, isoDates, cellFlag
 }
 
 export function renderScheduleView(parsed) {
+  if (!this.el.resultsContainer) return;
   if (!parsed) {
-    this.el.resultsContainer.innerHTML = `<p id="initialMessage">הדבק נתונים או משוך אותם מה‑Web App, ואז לחץ על ניתוח או סידור אוטומטי.</p>`;
-    this.el.fairnessContent.innerHTML = `בצע ניתוח כדי לראות הסבר למה כל תא/עובד מסומן.`;
+    this.el.resultsContainer.innerHTML = `<p id="initialMessage">לחץ על «משוך וסדר» או הדבק זמינות לטבלה ולחץ «סדר מחדש».</p>`;
     return;
   }
   if (parsed.error) {
     this.el.resultsContainer.innerHTML = `<p class="warning-text">❌ ${this.escapeHtml(parsed.error)}</p>`;
-    this.el.fairnessContent.innerHTML = `<div class="empty-state">אין נתונים תקינים להצגת פאנל הוגנות.</div>`;
     return;
   }
   if (!this.el.startDate.value) {
     this.el.resultsContainer.innerHTML = `<p class="warning-text">❌ אנא בחר תאריך תחילת שבוע.</p>`;
-    this.el.fairnessContent.innerHTML = `<div class="empty-state">בחר תאריך תחילת שבוע.</div>`;
     return;
   }
 
