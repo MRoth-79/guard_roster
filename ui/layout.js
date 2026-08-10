@@ -1,24 +1,20 @@
 export function cacheDom() {
   [
     "startDate","startDateLabel","googleSheetUrl","fetchStatus","guardButtonsContainer",
-    "quickFetchButton","fetchFromSheetButton","autoScheduleButton","analyzeButton",
-    "downloadHtmlButton","openSheetButton","btnExcelAuto","btnExcelClear",
+    "quickFetchButton","autoScheduleButton",
+    "downloadHtmlButton","openSheetButton","btnExcelUpdate","btnExcelClear",
     "openShiftReqBtn","shiftReqPanel","shiftReqClose","shiftReqScopeWeek",
-    "weekStartSelect","shiftReqGrid","openVacationsBtn","vacationsPanel",
-    "leaveScopeWeek","leaveNameInput","leaveFromInput","leaveToInput",
-    "leaveAddBtn","leaveClearBtn","vacationsList","statusBanner","resultsContainer",
-    "excel-grid","toggleFairnessButton","fairnessPanel","fairnessCloseBtn","fairnessContent",
-    "guardSearchInput","searchPrevBtn","searchNextBtn","clearSearchBtn","searchStatus",
-    "undoBtn","redoBtn","toggleUrlButton","urlInputWrap","autoMode"
+    "weekStartSelect","shiftReqGrid","statusBanner","resultsContainer",
+    "excel-grid","toggleGuardPickerButton","guardPickerPanel",
+    "toggleUrlButton","urlInputWrap","autoMode"
   ].forEach((id) => {
     this.el[id] = document.getElementById(id);
   });
 }
 
 export function bindEvents() {
-  this.el.analyzeButton.addEventListener("click", () => this.handleAnalyze());
   this.el.autoScheduleButton.addEventListener("click", () => this.autoSchedule());
-  this.el.btnExcelAuto.addEventListener("click", () => this.autoSchedule());
+  this.el.btnExcelUpdate.addEventListener("click", () => this.updateScheduleFromGrid());
   this.el.btnExcelClear.addEventListener("click", () => {
     this.pushUndoSnapshot();
     this.ExcelGrid.clear();
@@ -26,19 +22,16 @@ export function bindEvents() {
     this.persistFullState();
   });
 
-  this.el.fetchFromSheetButton.addEventListener("click", () => this.fetchFromGoogleSheet());
   this.el.quickFetchButton.addEventListener("click", () => this.fetchFromGoogleSheet());
   this.el.downloadHtmlButton.addEventListener("click", () => this.downloadHtmlTable());
   this.el.openSheetButton.addEventListener("click", () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"));
 
-  this.el.toggleFairnessButton.addEventListener("click", () => {
-    this.el.fairnessPanel.style.display = this.el.fairnessPanel.style.display === "block" ? "none" : "block";
-    this.persistFullState();
-  });
-  this.el.fairnessCloseBtn.addEventListener("click", () => {
-    this.el.fairnessPanel.style.display = "none";
-    this.persistFullState();
-  });
+  if (this.el.toggleGuardPickerButton && this.el.guardPickerPanel) {
+    this.el.toggleGuardPickerButton.addEventListener("click", () => {
+      const open = this.el.guardPickerPanel.classList.toggle("open");
+      this.el.toggleGuardPickerButton.setAttribute("aria-expanded", String(open));
+    });
+  }
 
   this.el.startDate.addEventListener("change", () => {
     this.pushUndoSnapshot();
@@ -47,19 +40,6 @@ export function bindEvents() {
     this.Store.setState({ startDate: this.el.startDate.value });
     this.persistFullState();
   });
-
-  this.el.guardSearchInput.addEventListener("input", () => {
-    this.Store.setState({ searchQuery: this.el.guardSearchInput.value });
-  });
-  this.el.searchPrevBtn.addEventListener("click", () => this.navigateSearch(-1));
-  this.el.searchNextBtn.addEventListener("click", () => this.navigateSearch(1));
-  this.el.clearSearchBtn.addEventListener("click", () => {
-    this.el.guardSearchInput.value = "";
-    this.Store.setState({ searchQuery: "" });
-  });
-
-  this.el.undoBtn.addEventListener("click", () => this.undo());
-  this.el.redoBtn.addEventListener("click", () => this.redo());
 
   document.addEventListener("mouseover", (e) => {
     const bubble = e.target.closest(".person");
@@ -87,17 +67,12 @@ export function bindEvents() {
       return;
     }
 
-    // --- FIX: אפשר עריכה גם בתא ריק (בלי bubble, רק עם תגית "ריק") ---
-    // לפני התיקון עריכה הופעלה רק בלחיצה על ".person" קיים, ולכן תא ריק
-    // לא היה ניתן לעריכה. עכשיו לחיצה בכל מקום בתוך תא-תוצאות ללא שמות
-    // נכנסת ישירות למצב עריכה. תאים מלאים ממשיכים להתנהג בדיוק כמו קודם.
     const emptyScheduleCell = e.target.closest('#scheduleTable td[contenteditable="plaintext-only"]');
     if (emptyScheduleCell && !emptyScheduleCell.querySelector(".person")) {
       e.preventDefault();
       this.startCellEditing(emptyScheduleCell);
       return;
     }
-    // --- END FIX ---
 
     const isUi = !!(e.target.closest("button") || e.target.closest("input") || e.target.closest("select") || e.target.closest("a"));
     if (!isUi) {
