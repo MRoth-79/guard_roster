@@ -13,7 +13,18 @@ export const RULES = {
   MIN_REQUIRED: 4,
   MAX_ALLOWED: 5,
   MAX_NIGHT_2_6: 2,
+  MIN_REST_HOURS: 8,
 };
+
+/** Start/end hour-of-day; 22:00-02:00 ends at 26 (= 02:00 next calendar day). */
+export const SHIFT_HOUR_BOUNDS = Object.freeze([
+  { start: 2, end: 6 },
+  { start: 6, end: 10 },
+  { start: 10, end: 14 },
+  { start: 14, end: 18 },
+  { start: 18, end: 22 },
+  { start: 22, end: 26 },
+]);
 
 export const SHEET_URL =
   "https://docs.google.com/spreadsheets/d/1NXgjKC-0j4blUQawwzz4lMEhswA561GKxAoSJO5ie_s/edit?gid=0#gid=0";
