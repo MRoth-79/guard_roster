@@ -33,13 +33,9 @@ export function computeUpcomingWeekStartIso() {
 
 export function initializeData() {
   this.el.startDate.value = this.computeUpcomingWeekStartIso();
-  try {
-    const savedUrl = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL);
-    const useSaved = savedUrl && /docs\.google\.com\/spreadsheets\/d\//i.test(savedUrl);
-    this.el.googleSheetUrl.value = useSaved ? savedUrl : this.C.SHEET_URL;
-  } catch {
-    this.el.googleSheetUrl.value = this.C.SHEET_URL;
-  }
+  // Locked secure sheet — always show/use the constant URL (overwrite stale localStorage).
+  this.el.googleSheetUrl.value = this.C.SHEET_URL;
+  try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
 }
 
 export function getHebDayNameFromIso(isoDate) {
