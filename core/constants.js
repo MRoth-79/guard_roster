@@ -26,8 +26,9 @@ export const SHIFT_HOUR_BOUNDS = Object.freeze([
   { start: 22, end: 26 },
 ]);
 
+/** Locked secure source for availability pull — do not override via UI/localStorage. */
 export const SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1NXgjKC-0j4blUQawwzz4lMEhswA561GKxAoSJO5ie_s/edit?gid=0#gid=0";
+  "https://docs.google.com/spreadsheets/d/1NXgjKC-0j4blUQawwzz4lMEhswA561GKxAoSJO5ie_s/edit?gid=545113631#gid=545113631";
 
 export const SHIFT_INDEX = Object.freeze({
   NIGHT_2_6: 0,
