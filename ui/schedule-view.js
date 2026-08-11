@@ -11,8 +11,8 @@ export function renderSummaryBar(summary) {
 
 export function renderCellBadges(day, slot, names, required, dayIso, cellFlags) {
   const badges = [];
-  if (!names.length) badges.push(`<span class="badge empty">ריק</span>`);
-  else if (names.length < required) badges.push(`<span class="badge short">חסר</span>`);
+  // Empty cells stay visually blank (still clickable/editable) — no "ריק" label.
+  if (names.length && names.length < required) badges.push(`<span class="badge short">חסר</span>`);
   else if (names.length > required) badges.push(`<span class="badge extra">עודף</span>`);
   if (names.some((name) => this.isOnVacation(name, dayIso))) badges.push(`<span class="badge leave">חופשה</span>`);
   const key = `${day}__${slot}`;
