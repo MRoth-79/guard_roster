@@ -3,7 +3,7 @@ export function makeSnapshot() {
     expectedDays: [...this.state.expectedDays],
     excelMatrix: this.state.excelMatrix.map((row) => [...row]),
     startDate: this.el.startDate?.value || "",
-    googleSheetUrl: this.el.googleSheetUrl?.value || "",
+    googleSheetUrl: this.C.SHEET_URL,
     lockedName: this.state.lockedName,
     weekStart: this.getWeekStartSetting(),
     priorityGuards: Array.from(this.getPriorityGuardSet()),
@@ -27,7 +27,8 @@ export function applySnapshot(snapshot) {
     : this.C.TIME_SLOTS.map(() => this.state.expectedDays.map(() => ""));
 
   this.el.startDate.value = snapshot.startDate || this.el.startDate.value;
-  this.el.googleSheetUrl.value = snapshot.googleSheetUrl || this.el.googleSheetUrl.value || this.C.DEFAULT_WEB_APP_URL;
+  this.el.googleSheetUrl.value = this.C.SHEET_URL;
+  try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
   this.state.lockedName = snapshot.lockedName || null;
   if (this.el.guardSearchInput) this.el.guardSearchInput.value = snapshot.searchQuery || "";
   if (this.el.autoMode) this.el.autoMode.value = snapshot.autoMode || "balanced";
@@ -75,12 +76,14 @@ export function restoreFullState() {
   try {
     const raw = localStorage.getItem(this.C.STORAGE_KEYS.FULL_STATE);
     if (!raw) {
-      this.el.googleSheetUrl.value = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL) || this.C.SHEET_URL;
+      this.el.googleSheetUrl.value = this.C.SHEET_URL;
+      try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
       return;
     }
     const parsed = JSON.parse(raw);
     this.applySnapshot(parsed);
   } catch {
-    this.el.googleSheetUrl.value = localStorage.getItem(this.C.STORAGE_KEYS.SHEET_URL) || this.C.SHEET_URL;
+    this.el.googleSheetUrl.value = this.C.SHEET_URL;
+    try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
   }
 }
