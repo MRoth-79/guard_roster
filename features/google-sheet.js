@@ -53,10 +53,6 @@ function extractGid(sheetUrl) {
   return match ? match[1] : "0";
 }
 
-function isDocsSheetUrl(url) {
-  return /docs\.google\.com\/spreadsheets\/d\//i.test(String(url || ""));
-}
-
 function uniqueNames(values) {
   const seen = new Set();
   const out = [];
@@ -163,15 +159,10 @@ async function fetchViaGoogleSheetCsv(sheetUrl) {
   return csvText;
 }
 
-function resolveSheetUrl(inputUrl, defaultSheetUrl) {
-  if (isDocsSheetUrl(inputUrl)) return inputUrl.trim();
-  return defaultSheetUrl;
-}
-
 export async function fetchFromGoogleSheet() {
-  const inputUrl = this.el.googleSheetUrl.value.trim();
   const statusEl = this.el.fetchStatus;
-  const sheetUrl = resolveSheetUrl(inputUrl, this.C.SHEET_URL);
+  // Always pull from the locked secure sheet URL (ignore UI / localStorage overrides).
+  const sheetUrl = this.C.SHEET_URL;
   const setFetchStatus = (text, color) => {
     if (!statusEl) return;
     statusEl.textContent = text;
@@ -186,8 +177,9 @@ export async function fetchFromGoogleSheet() {
   }
 
   this.pushUndoSnapshot();
+  if (this.el.googleSheetUrl) this.el.googleSheetUrl.value = sheetUrl;
   try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, sheetUrl); } catch {}
-  setFetchStatus("טוען זמינות מהגיליון... 🔄", "var(--artifact-accent)");
+  setFetchStatus("טוען זמינות מהגיליון המאובטח... 🔄", "var(--artifact-accent)");
   if (this.el.fetchFromSheetButton) this.el.fetchFromSheetButton.disabled = true;
   if (this.el.quickFetchButton) this.el.quickFetchButton.disabled = true;
 
