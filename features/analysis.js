@@ -157,8 +157,7 @@ export function buildDashboardSummary(parsed, insights) {
 export function getCellReasonParts(day, slot, names, required, dayIso, cellFlags) {
   const reasons = [];
   const leaveNames = names.filter((name) => this.isOnVacation(name, dayIso));
-  if (!names.length) reasons.push("המשבצת ריקה.");
-  else if (names.length < required) reasons.push(`חסרים ${required - names.length} שומרים (שובצו ${names.length} מתוך ${required}).`);
+  if (names.length && names.length < required) reasons.push(`חסרים ${required - names.length} שומרים (שובצו ${names.length} מתוך ${required}).`);
   else if (names.length > required) reasons.push(`יש עודף של ${names.length - required} שומרים (נדרשים ${required}).`);
   if (leaveNames.length) reasons.push(`מסומנים בחופשה/מילואים: ${leaveNames.join(", ")}.`);
   const key = `${day}__${slot}`;
