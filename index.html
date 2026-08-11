@@ -491,11 +491,11 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 
       <div class="card">
         <h3 class="section-title">מקור Google Sheet</h3>
-        <p class="subtle">ה־URL מוסתר כברירת מחדל. משיכה מהסרגל למעלה גם מסדרת אוטומטית.</p>
+        <p class="subtle">משיכה רק מהגיליון המאובטח הקבוע. משיכה מהסרגל למעלה גם מסדרת אוטומטית.</p>
         <div class="url-toggle-row">
           <button id="toggleUrlButton" class="btn btn-neutral url-toggle-btn" type="button">🔗 URL</button>
           <div id="urlInputWrap" class="url-input-wrap">
-            <input id="googleSheetUrl" type="text" class="input url-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit" />
+            <input id="googleSheetUrl" type="text" class="input url-input" readonly title="מקור מאובטח קבוע — לא ניתן לשינוי" placeholder="https://docs.google.com/spreadsheets/d/.../edit" />
           </div>
         </div>
         <p id="fetchStatus" class="subtle" style="display:none;"></p>
