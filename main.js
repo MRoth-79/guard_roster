@@ -20,9 +20,9 @@ import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
 import { showStatus } from "./ui/status-banner.js";
 import { createExcelGrid, syncRenderedTableBackToMatrix, refreshAfterDataChange } from "./features/grid.js";
-import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js";
+import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js?v=20260812a";
 import { renderFairnessPanel } from "./ui/fairness-panel.js";
-import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js";
+import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js?v=20260812a";
 import { updateHighlights, updateSearchHighlights, focusSearchMatch, navigateSearch } from "./features/search.js";
 import { getShiftReqStorageKey, loadShiftRequirements, saveShiftRequirements, getRequiredPerShift, buildShiftReqPanel } from "./features/shift-requirements.js";
 import { getVacationStorageKey, loadVacationsMap, saveVacationsMap, isOnVacation, buildWeeklyOnLeaveSet, buildVacationsPanel } from "./features/vacations.js";
@@ -224,7 +224,7 @@ const App = {
   },
 
   convertEditableCellToBubbles(cell, fallbackTime = "") {
-    const raw = String(cell.innerText || "").replace(/בעיה!?/g, "").replace(/משבצת\s*ריקה/g, "");
+    const raw = String(cell.innerText || "").replace(/בעיה!?/g, "").replace(/משבצת\s*ריקה/g, "").replace(/(^|\s)ריק(\s|$)/g, " ");
     const names = this.splitCellNames(raw);
     const dayName = cell.getAttribute("data-day") || "";
     const timeLabel = cell.getAttribute("data-time") || fallbackTime;
