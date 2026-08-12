@@ -21,9 +21,9 @@ import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
 import { showStatus } from "./ui/status-banner.js";
 import { createExcelGrid, syncRenderedTableBackToMatrix, refreshAfterDataChange } from "./features/grid.js";
-import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js?v=20260812b";
+import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js?v=20260812c";
 import { renderFairnessPanel } from "./ui/fairness-panel.js";
-import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js?v=20260812b";
+import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js?v=20260812c";
 import { updateHighlights, updateSearchHighlights, focusSearchMatch, navigateSearch } from "./features/search.js";
 import { getShiftReqStorageKey, loadShiftRequirements, saveShiftRequirements, getRequiredPerShift, buildShiftReqPanel } from "./features/shift-requirements.js";
 import { getVacationStorageKey, loadVacationsMap, saveVacationsMap, isOnVacation, buildWeeklyOnLeaveSet, buildVacationsPanel } from "./features/vacations.js";
@@ -38,7 +38,7 @@ import {
   postToCloud,
   saveToCloud,
   loadFromCloud,
-} from "./features/cloud-sync.js?v=20260812b";
+} from "./features/cloud-sync.js?v=20260812c";
 
 const Store = createStore();
 
@@ -150,40 +150,56 @@ const App = {
   loadFromCloud,
 
   init() {
-    this.cacheDom();
-    this.bindToolbar();
-    this.bindEvents();
-    this.state.expectedDays = this.computeExpectedDays(this.getWeekStartSetting());
-    this.initializeData();
-    this.ExcelGrid = createExcelGrid(this);
-    this.ExcelGrid.init();
-    this.renderGuardButtons();
-    this.buildShiftReqPanel();
-    this.buildVacationsPanel();
-    this.restoreFullState();
+    try {
+      this.cacheDom();
+      this.bindToolbar();
+      this.bindEvents();
+      this.state.expectedDays = this.computeExpectedDays(this.getWeekStartSetting());
+      this.initializeData();
+      this.ExcelGrid = createExcelGrid(this);
+      this.ExcelGrid.init();
+      this.renderGuardButtons();
+      this.buildShiftReqPanel();
+      this.buildVacationsPanel();
+      try {
+        this.restoreFullState();
+      } catch (err) {
+        console.error("restoreFullState failed", err);
+      }
 
-    // --- FIX: אל תשחזר תאריך תחילת שבוע שכבר עבר ---
-    // restoreFullState עלול לטעון startDate מסשן קודם (שני/ראשון של שבוע שעבר).
-    // אם התאריך המשוחזר ריק או מוקדם מיום תחילת השבוע הקרוב — קבע מחדש לשבוע קדימה.
-    // תאריך עתידי שנשמר ידנית (למשל שבועיים קדימה) יישאר כמו שהוא.
-    const upcomingIso = this.computeUpcomingWeekStartIso();
-    if (!this.el.startDate.value || this.el.startDate.value < upcomingIso) {
-      this.el.startDate.value = upcomingIso;
+      // --- FIX: אל תשחזר תאריך תחילת שבוע שכבר עבר ---
+      const upcomingIso = this.computeUpcomingWeekStartIso();
+      if (!this.el.startDate?.value || this.el.startDate.value < upcomingIso) {
+        this.el.startDate.value = upcomingIso;
+      }
+      // --- END FIX ---
+
+      // Ensure grid + days exist even if restore left bad state.
+      if (!Array.isArray(this.state.expectedDays) || this.state.expectedDays.length !== 7) {
+        this.state.expectedDays = this.computeExpectedDays(this.getWeekStartSetting());
+      }
+      if (!Array.isArray(this.state.excelMatrix) || this.state.excelMatrix.length !== this.C.TIME_SLOTS.length) {
+        this.state.excelMatrix = this.C.TIME_SLOTS.map(() => this.state.expectedDays.map(() => ""));
+      }
+      this.ExcelGrid.render();
+      this.updateStartDateLabelBySetting();
+
+      this.Store.setState({
+        excelMatrix: this.state.excelMatrix,
+        startDate: this.el.startDate.value,
+        lockedName: this.state.lockedName,
+        searchQuery: "",
+      });
+
+      this.updateUndoRedoButtons();
+      this.updateSearchHighlights();
+      if (this.serializeMatrixToVerticalText().trim()) this.handleAnalyze();
+    } catch (err) {
+      console.error("App.init failed", err);
+      try {
+        this.showStatus(`שגיאת אתחול: ${err?.message || err}`, "error");
+      } catch {}
     }
-    // --- END FIX ---
-
-    this.updateStartDateLabelBySetting();
-
-    this.Store.setState({
-      excelMatrix: this.state.excelMatrix,
-      startDate: this.el.startDate.value,
-      lockedName: this.state.lockedName,
-      searchQuery: "",
-    });
-
-    this.updateUndoRedoButtons();
-    this.updateSearchHighlights();
-    if (this.serializeMatrixToVerticalText().trim()) this.handleAnalyze();
   },
 
   handleAnalyze() {
@@ -305,9 +321,12 @@ const App = {
     try {
       if (Array.isArray(state.excelMatrix) && state.excelMatrix.length) {
         this.state.excelMatrix = state.excelMatrix.map((row) => [...row]);
+        // Keep the input grid in sync when store matrix changes.
+        try { this.ExcelGrid?.render?.(); } catch {}
       }
       if (typeof state.lockedName !== "undefined") this.state.lockedName = state.lockedName;
-      if (typeof state.startDate === "string" && this.el.startDate && this.el.startDate.value !== state.startDate) {
+      // Never wipe a visible date with an empty store value.
+      if (typeof state.startDate === "string" && state.startDate && this.el.startDate && this.el.startDate.value !== state.startDate) {
         this.el.startDate.value = state.startDate;
         this.updateStartDateLabelBySetting();
       }
