@@ -13,18 +13,18 @@ export function cacheDom() {
 }
 
 export function bindEvents() {
-  this.el.autoScheduleButton.addEventListener("click", () => this.autoSchedule());
-  this.el.btnExcelUpdate.addEventListener("click", () => this.updateScheduleFromGrid());
-  this.el.btnExcelClear.addEventListener("click", () => {
+  this.el.autoScheduleButton?.addEventListener("click", () => this.autoSchedule());
+  this.el.btnExcelUpdate?.addEventListener("click", () => this.updateScheduleFromGrid());
+  this.el.btnExcelClear?.addEventListener("click", () => {
     this.pushUndoSnapshot();
     this.ExcelGrid.clear();
     this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: null });
     this.persistFullState();
   });
 
-  this.el.quickFetchButton.addEventListener("click", () => this.fetchFromGoogleSheet());
-  this.el.downloadHtmlButton.addEventListener("click", () => this.downloadHtmlTable());
-  this.el.openSheetButton.addEventListener("click", () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"));
+  this.el.quickFetchButton?.addEventListener("click", () => this.fetchFromGoogleSheet());
+  this.el.downloadHtmlButton?.addEventListener("click", () => this.downloadHtmlTable());
+  this.el.openSheetButton?.addEventListener("click", () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"));
   this.el.saveToCloudButton?.addEventListener("click", () => this.saveToCloud());
   this.el.loadFromCloudButton?.addEventListener("click", () => this.loadFromCloud());
 
@@ -35,7 +35,7 @@ export function bindEvents() {
     });
   }
 
-  this.el.startDate.addEventListener("change", () => {
+  this.el.startDate?.addEventListener("change", () => {
     this.pushUndoSnapshot();
     this.updateStartDateLabelBySetting();
     this.refreshAfterDataChange();
