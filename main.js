@@ -1,5 +1,6 @@
 import {
   DEFAULT_WEB_APP_URL,
+  CLOUD_PASSWORD,
   STORAGE_KEYS,
   RULES,
   SHEET_URL,
@@ -20,9 +21,9 @@ import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
 import { showStatus } from "./ui/status-banner.js";
 import { createExcelGrid, syncRenderedTableBackToMatrix, refreshAfterDataChange } from "./features/grid.js";
-import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js?v=20260812a";
+import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js?v=20260812b";
 import { renderFairnessPanel } from "./ui/fairness-panel.js";
-import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js?v=20260812a";
+import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js?v=20260812b";
 import { updateHighlights, updateSearchHighlights, focusSearchMatch, navigateSearch } from "./features/search.js";
 import { getShiftReqStorageKey, loadShiftRequirements, saveShiftRequirements, getRequiredPerShift, buildShiftReqPanel } from "./features/shift-requirements.js";
 import { getVacationStorageKey, loadVacationsMap, saveVacationsMap, isOnVacation, buildWeeklyOnLeaveSet, buildVacationsPanel } from "./features/vacations.js";
@@ -30,12 +31,21 @@ import { pushUndoSnapshot, updateUndoRedoButtons, undo, redo } from "./features/
 import { fetchFromGoogleSheet } from "./features/google-sheet.js";
 import { autoSchedule } from "./features/auto-scheduler.js";
 import { downloadHtmlTable } from "./features/export-html.js";
+import {
+  askCloudPassword,
+  makeCloudSnapshot,
+  applyCloudSnapshot,
+  postToCloud,
+  saveToCloud,
+  loadFromCloud,
+} from "./features/cloud-sync.js?v=20260812b";
 
 const Store = createStore();
 
 const App = {
   C: {
     DEFAULT_WEB_APP_URL,
+    CLOUD_PASSWORD,
     STORAGE_KEYS,
     RULES,
     SHEET_URL,
@@ -132,6 +142,12 @@ const App = {
   fetchFromGoogleSheet,
   autoSchedule,
   downloadHtmlTable,
+  askCloudPassword,
+  makeCloudSnapshot,
+  applyCloudSnapshot,
+  postToCloud,
+  saveToCloud,
+  loadFromCloud,
 
   init() {
     this.cacheDom();
