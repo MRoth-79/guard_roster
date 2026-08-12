@@ -266,14 +266,30 @@ async function postToCloud(payload) {
     throw new Error("חסר DEFAULT_WEB_APP_URL תקין — פרוס את apps-script/Code.gs והדבק את כתובת ה-/exec");
   }
 
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload),
-    redirect: "follow",
-  });
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+      redirect: "follow",
+    });
+  } catch (err) {
+    const msg = String(err?.message || err || "");
+    if (/Failed to fetch|NetworkError|Load failed|CORS/i.test(msg)) {
+      throw new Error(
+        "אין גישה לשרת הענן (403/CORS). צריך לפרוס מחדש את apps-script/Code.gs כ-Web App עם Who has access = Anyone, ואז לעדכן את DEFAULT_WEB_APP_URL ב-core/constants.js"
+      );
+    }
+    throw err;
+  }
 
   const text = await resp.text();
+  if (resp.status === 401 || resp.status === 403) {
+    throw new Error(
+      `שרת הענן דחה את הבקשה (${resp.status}). פרוס מחדש את Code.gs (Anyone) והחלף את כתובת ה-/exec ב-constants.js`
+    );
+  }
   let data;
   try {
     data = JSON.parse(text);
