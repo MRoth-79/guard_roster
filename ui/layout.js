@@ -1,7 +1,7 @@
 export function cacheDom() {
   [
     "startDate","startDateLabel","googleSheetUrl","fetchStatus","guardButtonsContainer",
-    "quickFetchButton","autoScheduleButton",
+    "quickFetchButton","autoScheduleButton","saveToCloudButton","loadFromCloudButton",
     "downloadHtmlButton","openSheetButton","btnExcelUpdate","btnExcelClear",
     "openShiftReqBtn","shiftReqPanel","shiftReqClose","shiftReqScopeWeek",
     "weekStartSelect","shiftReqGrid","statusBanner","resultsContainer",
@@ -25,6 +25,8 @@ export function bindEvents() {
   this.el.quickFetchButton.addEventListener("click", () => this.fetchFromGoogleSheet());
   this.el.downloadHtmlButton.addEventListener("click", () => this.downloadHtmlTable());
   this.el.openSheetButton.addEventListener("click", () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"));
+  this.el.saveToCloudButton?.addEventListener("click", () => this.saveToCloud());
+  this.el.loadFromCloudButton?.addEventListener("click", () => this.loadFromCloud());
 
   if (this.el.toggleGuardPickerButton && this.el.guardPickerPanel) {
     this.el.toggleGuardPickerButton.addEventListener("click", () => {
