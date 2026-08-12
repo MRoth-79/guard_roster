@@ -248,6 +248,8 @@ body{padding:18px 16px 28px}
 .tool-download{background:linear-gradient(145deg,#0284c7,#075985)}
 .tool-sheet{background:linear-gradient(145deg,#16a34a,#166534)}
 .tool-fair{background:linear-gradient(145deg,#0d9488,#0f766e)}
+.tool-cloud-save{background:linear-gradient(145deg,#7c3aed,#5b21b6)}
+.tool-cloud-load{background:linear-gradient(145deg,#4f46e5,#3730a3)}
 .grid-wrap,.fairness-table-wrap{
   overflow:auto;border-radius:12px;border:3px solid #111;
   background:var(--artifact-surface);box-shadow:0 0 0 1px #111, var(--artifact-shadow-soft);
@@ -525,6 +527,8 @@ table{width:100%;border-collapse:separate;border-spacing:0}
       <div class="toolbar">
         <button id="quickFetchButton" class="tool-btn tool-fetch"><span class="icon">🔄</span><span>משוך וסדר</span></button>
         <button id="autoScheduleButton" class="tool-btn tool-ai"><span class="icon">🤖</span><span>סדר מחדש</span></button>
+        <button id="saveToCloudButton" class="tool-btn tool-cloud-save"><span class="icon">☁️</span><span>שמור לענן</span></button>
+        <button id="loadFromCloudButton" class="tool-btn tool-cloud-load"><span class="icon">⬇️</span><span>משוך מהענן</span></button>
         <button id="downloadHtmlButton" class="tool-btn tool-download"><span class="icon">💾</span><span>הורד HTML</span></button>
         <button id="openSheetButton" class="tool-btn tool-sheet"><span class="icon">📄</span><span>פתח גיליון</span></button>
       </div>
@@ -559,6 +563,6 @@ table{width:100%;border-collapse:separate;border-spacing:0}
     </section>
   </div>
 
-  <script type="module" src="./main.js?v=20260812a"></script>
+  <script type="module" src="./main.js?v=20260812b"></script>
 </body>
 </html>
