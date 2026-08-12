@@ -1,6 +1,6 @@
-/** Google Apps Script Web App (/exec). Redeploy apps-script/Code.gs and paste the new URL here. */
+/** Google Apps Script Web App (/exec) — guard_roster cloud save/load. */
 export const DEFAULT_WEB_APP_URL =
-  "https://script.google.com/macros/s/AKfycbwDSDYW6iFTCxBWlWy78LsCutdyfq-qvrSs8pmCNs3jzB5jpBVbM_d_scxArKBxi-6Q/exec";
+  "https://script.google.com/macros/s/AKfycbwsqLetDtytZdYuPKEWK5Jb4u8YC82M1GTlwKWh4TZ2ubT2daKFOeRq_OhKH9YsLBaz6g/exec";
 
 /** Shared password for cloud save/load (also enforced in apps-script/Code.gs). */
 export const CLOUD_PASSWORD = "2244";
