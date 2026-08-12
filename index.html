@@ -234,9 +234,9 @@ body{padding:18px 16px 28px}
 .btn-success{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff}
 .btn-danger{background:linear-gradient(135deg,#b91c1c,#dc2626);color:#fff}
 .btn-neutral{background:var(--artifact-background-mid);color:var(--artifact-text-primary);border:1px solid var(--artifact-border-light)}
-.toolbar{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin-top:14px}
+.toolbar{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr));gap:12px;margin-top:14px;align-items:stretch}
 .tool-btn{
-  min-height:98px;border-radius:18px;color:#fff;font-weight:900;font-size:14px;border:none;cursor:pointer;
+  min-height:98px;height:100%;border-radius:18px;color:#fff;font-weight:900;font-size:14px;border:none;cursor:pointer;
   box-shadow:var(--artifact-shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
   font-family:inherit;transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
@@ -454,7 +454,8 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 @media (max-width:768px){
   body{padding:10px}
   .hero{padding:18px 16px;border-radius:22px}
-  .toolbar,.req-grid,.summary-bar,.fairness-summary,.undo-search-bar{grid-template-columns:1fr}
+  .toolbar{grid-template-columns:repeat(2,minmax(120px,1fr))}
+  .req-grid,.summary-bar,.fairness-summary,.undo-search-bar{grid-template-columns:1fr}
   .guard-grid{grid-template-columns:repeat(4,minmax(72px,1fr))}
   .schedule-table{min-width:900px}
   .fairness-table{min-width:620px}
@@ -527,10 +528,10 @@ table{width:100%;border-collapse:separate;border-spacing:0}
       <div class="toolbar">
         <button id="quickFetchButton" class="tool-btn tool-fetch"><span class="icon">🔄</span><span>משוך וסדר</span></button>
         <button id="autoScheduleButton" class="tool-btn tool-ai"><span class="icon">🤖</span><span>סדר מחדש</span></button>
-        <button id="saveToCloudButton" class="tool-btn tool-cloud-save"><span class="icon">☁️</span><span>שמור לענן</span></button>
-        <button id="loadFromCloudButton" class="tool-btn tool-cloud-load"><span class="icon">⬇️</span><span>משוך מהענן</span></button>
         <button id="downloadHtmlButton" class="tool-btn tool-download"><span class="icon">💾</span><span>הורד HTML</span></button>
         <button id="openSheetButton" class="tool-btn tool-sheet"><span class="icon">📄</span><span>פתח גיליון</span></button>
+        <button id="saveToCloudButton" class="tool-btn tool-cloud-save"><span class="icon">☁️</span><span>שמור לענן</span></button>
+        <button id="loadFromCloudButton" class="tool-btn tool-cloud-load"><span class="icon">⬇️</span><span>משוך מהענן</span></button>
       </div>
 
       <div class="row center" style="margin-top:14px;">
@@ -563,6 +564,6 @@ table{width:100%;border-collapse:separate;border-spacing:0}
     </section>
   </div>
 
-  <script type="module" src="./main.js?v=20260812b"></script>
+  <script type="module" src="./main.js?v=20260812c"></script>
 </body>
 </html>
