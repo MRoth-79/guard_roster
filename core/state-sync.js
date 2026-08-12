@@ -26,8 +26,12 @@ export function applySnapshot(snapshot) {
     ? snapshot.excelMatrix.map((row) => Array.isArray(row) ? [...row] : this.state.expectedDays.map(() => ""))
     : this.C.TIME_SLOTS.map(() => this.state.expectedDays.map(() => ""));
 
-  this.el.startDate.value = snapshot.startDate || this.el.startDate.value;
-  this.el.googleSheetUrl.value = this.C.SHEET_URL;
+  this.el.startDate.value = snapshot.startDate || this.el.startDate.value || this.computeUpcomingWeekStartIso();
+  // Reject non-ISO values that make <input type="date"> appear blank.
+  if (this.el.startDate.value && !/^\d{4}-\d{2}-\d{2}$/.test(this.el.startDate.value)) {
+    this.el.startDate.value = this.computeUpcomingWeekStartIso();
+  }
+  if (this.el.googleSheetUrl) this.el.googleSheetUrl.value = this.C.SHEET_URL;
   try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
   this.state.lockedName = snapshot.lockedName || null;
   if (this.el.guardSearchInput) this.el.guardSearchInput.value = snapshot.searchQuery || "";
@@ -48,7 +52,7 @@ export function applySnapshot(snapshot) {
     try { localStorage.setItem(this.C.STORAGE_KEYS.SHIFT_REQ_SCOPE_WEEK, snapshot.shiftReqScopeWeek ? "1" : "0"); } catch {}
   }
 
-  this.ExcelGrid.render();
+  this.ExcelGrid?.render?.();
   this.state.priorityGuards = (snapshot.priorityGuards || []).map((x) => this.normalizeKey(x)).filter(Boolean);
   this.renderGuardButtons();
 
