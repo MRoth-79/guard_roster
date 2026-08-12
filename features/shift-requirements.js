@@ -25,8 +25,9 @@ export function getRequiredPerShift(index) {
 }
 
 export function buildShiftReqPanel() {
-  try { this.el.shiftReqScopeWeek.checked = localStorage.getItem(this.C.STORAGE_KEYS.SHIFT_REQ_SCOPE_WEEK) === "1"; } catch {}
-  this.el.weekStartSelect.value = this.getWeekStartSetting();
+  if (!this.el.shiftReqGrid) return;
+  try { if (this.el.shiftReqScopeWeek) this.el.shiftReqScopeWeek.checked = localStorage.getItem(this.C.STORAGE_KEYS.SHIFT_REQ_SCOPE_WEEK) === "1"; } catch {}
+  if (this.el.weekStartSelect) this.el.weekStartSelect.value = this.getWeekStartSetting();
 
   const renderRows = () => {
     const map = this.loadShiftRequirements();
