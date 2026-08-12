@@ -1,5 +1,9 @@
+/** Google Apps Script Web App (/exec). Redeploy apps-script/Code.gs and paste the new URL here. */
 export const DEFAULT_WEB_APP_URL =
   "https://script.google.com/macros/s/AKfycbwDSDYW6iFTCxBWlWy78LsCutdyfq-qvrSs8pmCNs3jzB5jpBVbM_d_scxArKBxi-6Q/exec";
+
+/** Shared password for cloud save/load (also enforced in apps-script/Code.gs). */
+export const CLOUD_PASSWORD = "2244";
 
 export const STORAGE_KEYS = {
   WEEK_START: "weekStart",
