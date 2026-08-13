@@ -77,7 +77,7 @@ export const NAME_STYLES = {
   "חסון":   { bg: "linear-gradient(135deg, #3b1c0a, #6b3a14)", borderColor: "#431407", borderStyle: "double" },
   "ויקטור": { bg: "linear-gradient(135deg, #9a3412, #f97316)", borderColor: "#9d174d", borderStyle: "dashed" },
   "עידן":   { bg: "linear-gradient(135deg, #86198f, #e879f9)", borderColor: "#581c87", borderStyle: "solid" },
-  "ישי":    { bg: "linear-gradient(135deg, #4b5563, #9ca3af)", borderColor: "#111111", borderStyle: "dotted" },
+  "ישי":    { bg: "linear-gradient(135deg, #8d949c 0%, #cfd3d8 45%, #f4f5f7 100%)", borderColor: "#111111", borderStyle: "dotted" },
   "ניר":    { bg: "linear-gradient(135deg, #7f1d1d, #dc2626)", borderColor: "#7f1d1d", borderStyle: "double" },
   "מאור":   { bg: "linear-gradient(135deg, #eab308, #fde047)", borderColor: "#854d0e", borderStyle: "solid" },
   "נמרוד":  { bg: "linear-gradient(135deg, #065f46, #10b981)", borderColor: "#115e59", borderStyle: "dashed" },
