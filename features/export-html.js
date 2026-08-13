@@ -18,7 +18,9 @@ export function downloadHtmlTable() {
   const end = new Date(start); end.setDate(start.getDate() + 6);
   const fmt = (dt) => `${String(dt.getDate()).padStart(2, "0")}/${String(dt.getMonth() + 1).padStart(2, "0")}`;
   const title = `טבלת משמרות ${fmt(start)} - ${fmt(end)}`;
-  const style = document.querySelector("style").textContent;
+  const style = Array.from(document.querySelectorAll("style"))
+    .map((el) => el.textContent)
+    .join("\n");
 
   // --- סקריפט inline עצמאי: משתמש באותן מחלקות של האפליקציה
   //     (spotlight-active על הקונטיינר + highlight-name על ה-bubble)
