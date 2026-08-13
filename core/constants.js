@@ -80,7 +80,7 @@ export const NAME_STYLES = {
   "ישי":    { bg: "linear-gradient(135deg, #8d949c 0%, #cfd3d8 45%, #f4f5f7 100%)", borderColor: "#111111", borderStyle: "dotted" },
   "ניר":    { bg: "linear-gradient(135deg, #7f1d1d, #dc2626)", borderColor: "#7f1d1d", borderStyle: "double" },
   "מאור":   { bg: "linear-gradient(135deg, #9a3412, #f97316)", borderColor: "#854d0e", borderStyle: "solid" },
-  "נמרוד":  { bg: "linear-gradient(135deg, #e6c229 0%, #ffe135 52%, #fff6a8 100%)", borderColor: "#115e59", borderStyle: "dashed" },
+  "נמרוד":  { bg: "linear-gradient(135deg, #0e7490, #2dd4bf)", borderColor: "#115e59", borderStyle: "dashed" },
   "טגניה":  { bg: "linear-gradient(135deg, #2e0a3d, #5b2c6f)", borderColor: "#4c1d95", borderStyle: "dashed" },
   "גולן":   { bg: "linear-gradient(135deg, #115e59, #0d9488)", borderColor: "#134e4a", borderStyle: "double" },
   "לישע":   { bg: "linear-gradient(135deg, #3f6212, #a3e635)", borderColor: "#365314", borderStyle: "solid" },
