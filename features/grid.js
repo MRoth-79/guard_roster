@@ -107,8 +107,7 @@ export function createExcelGrid(app) {
     },
 
     isKnownName(name) {
-      const clean = app.normalizeKey(name);
-      return !!(app.C.COLOR_MAP[clean] || app.C.COLOR_MAP[clean.replace(/\s+/g, "_")]);
+      return !!app.nameToColorClass(name);
     },
 
     validateCellElement(cell) {
