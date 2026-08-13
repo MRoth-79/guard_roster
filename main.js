@@ -10,12 +10,14 @@ import {
   TIME_SLOTS,
   SLOT_ICONS,
   COLOR_MAP,
+  NAME_STYLES,
+  NAME_ALIASES,
 } from "./core/constants.js";
 import { createStore } from "./core/store.js";
 import { makeSnapshot, applySnapshot, persistFullState, restoreFullState } from "./core/state-sync.js";
 import { normalizeKey, splitCellNames, escapeHtml, aggressiveClean } from "./utils/text.js";
 import { getWeekStartSetting, computeExpectedDays, initializeData, computeUpcomingWeekStartIso, getHebDayNameFromIso, updateStartDateLabelBySetting, getDatesForWeek, getIsoDatesForWeek } from "./utils/dates.js";
-import { allEmployeeNames, getScheduledEmployeeNames, nameToColorClass } from "./utils/names.js";
+import { allEmployeeNames, getScheduledEmployeeNames, nameToColorClass, injectPersonNameStyles } from "./utils/names.js";
 import { cx, insertPlainTextAtCursor, placeCaretAtEnd } from "./utils/dom.js";
 import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
@@ -54,6 +56,8 @@ const App = {
     TIME_SLOTS,
     SLOT_ICONS,
     COLOR_MAP,
+    NAME_STYLES,
+    NAME_ALIASES,
   },
   Store,
   state: {
@@ -94,6 +98,7 @@ const App = {
   allEmployeeNames,
   getScheduledEmployeeNames,
   nameToColorClass,
+  injectPersonNameStyles,
   cx,
   insertPlainTextAtCursor,
   placeCaretAtEnd,
@@ -150,6 +155,7 @@ const App = {
 
   init() {
     try {
+      this.injectPersonNameStyles();
       this.cacheDom();
       this.bindToolbar();
       this.bindEvents();
