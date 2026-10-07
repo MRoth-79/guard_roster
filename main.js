@@ -16,7 +16,7 @@ import { createStore } from "./core/store.js";
 import { makeSnapshot, applySnapshot, persistFullState, restoreFullState } from "./core/state-sync.js";
 import { normalizeKey, splitCellNames, escapeHtml, aggressiveClean } from "./utils/text.js";
 import { getWeekStartSetting, computeExpectedDays, initializeData, computeUpcomingWeekStartIso, getHebDayNameFromIso, updateStartDateLabelBySetting, getDatesForWeek, getIsoDatesForWeek } from "./utils/dates.js";
-import { allEmployeeNames, getScheduledEmployeeNames, nameToColorClass, injectPersonNameStyles } from "./utils/names.js";
+import { allEmployeeNames, getScheduledEmployeeNames, nameToColorClass, injectPersonNameStyles, canonicalName, uniqueCanonicalNames, validateNameAliases } from "./utils/names.js";
 import { cx, insertPlainTextAtCursor, placeCaretAtEnd } from "./utils/dom.js";
 import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
@@ -97,6 +97,8 @@ const App = {
   allEmployeeNames,
   getScheduledEmployeeNames,
   nameToColorClass,
+  canonicalName,
+  uniqueCanonicalNames,
   injectPersonNameStyles,
   cx,
   insertPlainTextAtCursor,
@@ -158,6 +160,7 @@ const App = {
 
   init() {
     try {
+      validateNameAliases(this.C.NAME_ALIASES);
       this.injectPersonNameStyles();
       this.cacheDom();
       this.bindToolbar();
@@ -298,10 +301,10 @@ const App = {
 
   renderGuardButtons() {
     const names = this.allEmployeeNames();
-    const selected = new Set((this.state.priorityGuards || []).map((n) => this.normalizeKey(n)));
+    const selected = new Set((this.state.priorityGuards || []).map((n) => this.canonicalName(n)));
     this.el.guardButtonsContainer.innerHTML = "";
     names.forEach((name) => {
-      const clean = this.normalizeKey(name);
+      const clean = this.canonicalName(name);
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "guard-btn";
@@ -312,7 +315,7 @@ const App = {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const set = new Set((this.state.priorityGuards || []).map((n) => this.normalizeKey(n)));
+        const set = new Set((this.state.priorityGuards || []).map((n) => this.canonicalName(n)));
         if (set.has(clean)) set.delete(clean);
         else set.add(clean);
         this.state.priorityGuards = Array.from(set);
@@ -330,7 +333,7 @@ const App = {
   },
 
   getPriorityGuardSet() {
-    return new Set((this.state.priorityGuards || []).map((n) => this.normalizeKey(n)).filter(Boolean));
+    return new Set((this.state.priorityGuards || []).map((n) => this.canonicalName(n)).filter(Boolean));
   },
 
   renderApp(state) {
