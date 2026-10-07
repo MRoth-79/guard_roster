@@ -97,14 +97,14 @@ export function restoreFullState() {
   try {
     const raw = localStorage.getItem(this.C.STORAGE_KEYS.FULL_STATE);
     if (!raw) {
-      this.el.googleSheetUrl.value = this.C.SHEET_URL;
+      if (this.el.googleSheetUrl) this.el.googleSheetUrl.value = this.C.SHEET_URL;
       try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
       return;
     }
     const parsed = JSON.parse(raw);
     this.applySnapshot(parsed);
   } catch {
-    this.el.googleSheetUrl.value = this.C.SHEET_URL;
+    if (this.el.googleSheetUrl) this.el.googleSheetUrl.value = this.C.SHEET_URL;
     try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
   }
 }
