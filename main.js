@@ -186,8 +186,20 @@ const App = {
         this.state.availabilityMatrix = emptyWeek();
       }
 
+      const weekStart = this.getWeekStartSetting();
+      const canonicalDays = this.computeExpectedDays(weekStart);
       if (!Array.isArray(this.state.expectedDays) || this.state.expectedDays.length !== 7) {
-        this.state.expectedDays = this.computeExpectedDays(this.getWeekStartSetting());
+        this.state.expectedDays = canonicalDays;
+      } else if (this.state.expectedDays[0] !== canonicalDays[0]) {
+        const oldDays = [...this.state.expectedDays];
+        const remap = (matrix) => (matrix.length ? matrix : this.C.TIME_SLOTS.map(() => oldDays.map(() => "")))
+          .map((row) => canonicalDays.map((day) => {
+            const oldIndex = oldDays.indexOf(day);
+            return oldIndex >= 0 ? (row[oldIndex] || "") : "";
+          }));
+        this.state.excelMatrix = remap(this.state.excelMatrix);
+        this.state.availabilityMatrix = remap(this.state.availabilityMatrix);
+        this.state.expectedDays = canonicalDays;
       }
       if (!Array.isArray(this.state.excelMatrix) || this.state.excelMatrix.length !== this.C.TIME_SLOTS.length) {
         this.state.excelMatrix = emptyWeek();
