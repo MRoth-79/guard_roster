@@ -209,6 +209,7 @@ const App = {
       this.updateUndoRedoButtons();
       this.updateSearchHighlights();
       if (this.serializeMatrixToVerticalText().trim()) this.handleAnalyze();
+      document.body.dataset.appReady = "1";
     } catch (err) {
       console.error("App.init failed", err);
       try {
