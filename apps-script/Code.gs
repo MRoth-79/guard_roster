@@ -79,6 +79,8 @@ function splitIntoByteChunks_(text) {
   return chunks;
 }
 
+var LEGACY_VERSION = "legacy";
+
 function readPayloadFromKey_(baseKey) {
   var props = PropertiesService.getScriptProperties();
   var n = Number(props.getProperty(baseKey + "__n") || "0");
@@ -88,10 +90,14 @@ function readPayloadFromKey_(baseKey) {
   for (i = 0; i < n; i++) {
     parts.push(props.getProperty(baseKey + "__" + i) || "");
   }
-  return {
-    data: JSON.parse(parts.join("")),
-    savedAt: props.getProperty(baseKey + "__savedAt") || "",
-  };
+  try {
+    return {
+      data: JSON.parse(parts.join("")),
+      savedAt: props.getProperty(baseKey + "__savedAt") || "",
+    };
+  } catch (err) {
+    return null;
+  }
 }
 
 function writeChunks_(props, baseKey, text) {
@@ -103,34 +109,115 @@ function writeChunks_(props, baseKey, text) {
   props.setProperty(baseKey + "__n", String(chunks.length));
 }
 
+function readManifest_(props, baseKey) {
+  var raw = props.getProperty(baseKey + "__manifest");
+  if (!raw) return null;
+  try {
+    var manifest = JSON.parse(raw);
+    if (!manifest || !manifest.activeVersion) return null;
+    return manifest;
+  } catch (err) {
+    return null;
+  }
+}
+
+function writeManifest_(props, baseKey, manifest) {
+  props.setProperty(baseKey + "__manifest", JSON.stringify(manifest));
+}
+
+function versionStorageKey_(baseKey, versionId) {
+  if (versionId === LEGACY_VERSION) return baseKey;
+  return baseKey + "__ver_" + versionId;
+}
+
+function hasLegacyPayload_(props, baseKey) {
+  return Number(props.getProperty(baseKey + "__n") || "0") > 0;
+}
+
+function payloadsEqual_(left, right) {
+  try {
+    return JSON.stringify(left) === JSON.stringify(right);
+  } catch (err) {
+    return false;
+  }
+}
+
+function readVersionPayload_(props, baseKey, versionId) {
+  if (!versionId) return null;
+  return readPayloadFromKey_(versionStorageKey_(baseKey, versionId));
+}
+
+function cleanupOldVersions_(props, baseKey, activeVersion, previousVersion) {
+  var keep = {};
+  keep[activeVersion] = true;
+  if (previousVersion) keep[previousVersion] = true;
+  keep[LEGACY_VERSION] = previousVersion === LEGACY_VERSION || activeVersion === LEGACY_VERSION;
+
+  var all = props.getKeys();
+  var prefix = baseKey + "__ver_";
+  var i;
+  for (i = 0; i < all.length; i++) {
+    var key = all[i];
+    if (key.indexOf(prefix) !== 0) continue;
+    var versionId = key.slice(prefix.length).split("__")[0];
+    if (keep[versionId]) continue;
+    clearChunks_(props, prefix + versionId);
+    props.deleteProperty(prefix + versionId + "__savedAt");
+  }
+}
+
 function writePayload_(baseKey, payloadObj) {
-  var props = PropertiesService.getScriptProperties();
-  var text = JSON.stringify(payloadObj);
-  var stagingKey = baseKey + "__staging";
-  var savedAt = new Date().toISOString();
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var text = JSON.stringify(payloadObj);
+    var savedAt = new Date().toISOString();
+    var manifest = readManifest_(props, baseKey);
+    var newVersion = String(Date.now()) + "_" + Utilities.getUuid().slice(0, 8);
+    var versionKey = versionStorageKey_(baseKey, newVersion);
 
-  clearChunks_(props, stagingKey);
-  writeChunks_(props, stagingKey, text);
-  props.setProperty(stagingKey + "__savedAt", savedAt);
+    writeChunks_(props, versionKey, text);
+    props.setProperty(versionKey + "__savedAt", savedAt);
 
-  var staged = readPayloadFromKey_(stagingKey);
-  if (!staged) {
-    clearChunks_(props, stagingKey);
-    throw new Error("שמירה נכשלה: לא ניתן לאמת את הנתונים לפני החלפה");
+    var staged = readPayloadFromKey_(versionKey);
+    if (!staged || !payloadsEqual_(staged.data, payloadObj)) {
+      clearChunks_(props, versionKey);
+      props.deleteProperty(versionKey + "__savedAt");
+      throw new Error("שמירה נכשלה: לא ניתן לאמת את הנתונים לפני פרסום");
+    }
+
+    var previousVersion = null;
+    if (manifest && manifest.activeVersion) {
+      previousVersion = manifest.activeVersion;
+    } else if (hasLegacyPayload_(props, baseKey)) {
+      previousVersion = LEGACY_VERSION;
+    }
+
+    writeManifest_(props, baseKey, {
+      activeVersion: newVersion,
+      previousVersion: previousVersion,
+      savedAt: savedAt,
+    });
+
+    cleanupOldVersions_(props, baseKey, newVersion, previousVersion);
+    return savedAt;
+  } finally {
+    lock.releaseLock();
   }
-
-  clearChunks_(props, baseKey);
-  var n = Number(props.getProperty(stagingKey + "__n") || "0");
-  for (var i = 0; i < n; i++) {
-    props.setProperty(baseKey + "__" + i, props.getProperty(stagingKey + "__" + i));
-  }
-  props.setProperty(baseKey + "__n", String(n));
-  props.setProperty(baseKey + "__savedAt", savedAt);
-  clearChunks_(props, stagingKey);
-  return savedAt;
 }
 
 function readPayload_(baseKey) {
+  var props = PropertiesService.getScriptProperties();
+  var manifest = readManifest_(props, baseKey);
+  if (manifest && manifest.activeVersion) {
+    var active = readVersionPayload_(props, baseKey, manifest.activeVersion);
+    if (active && active.data) return active;
+    if (manifest.previousVersion) {
+      var previous = readVersionPayload_(props, baseKey, manifest.previousVersion);
+      if (previous && previous.data) return previous;
+    }
+  }
   return readPayloadFromKey_(baseKey);
 }
 
