@@ -56,18 +56,18 @@ export function buildShiftReqPanel() {
     });
   };
 
-  this.el.openShiftReqBtn.addEventListener("click", () => {
+  this.el.openShiftReqBtn?.addEventListener("click", () => {
     this.el.shiftReqPanel.style.display = this.el.shiftReqPanel.style.display === "block" ? "none" : "block";
     renderRows();
   });
-  this.el.shiftReqClose.addEventListener("click", () => { this.el.shiftReqPanel.style.display = "none"; });
-  this.el.shiftReqScopeWeek.addEventListener("change", () => {
+  this.el.shiftReqClose?.addEventListener("click", () => { this.el.shiftReqPanel.style.display = "none"; });
+  this.el.shiftReqScopeWeek?.addEventListener("change", () => {
     try { localStorage.setItem(this.C.STORAGE_KEYS.SHIFT_REQ_SCOPE_WEEK, this.el.shiftReqScopeWeek.checked ? "1" : "0"); } catch {}
     this.persistFullState();
     renderRows();
     this.refreshAfterDataChange();
   });
-  this.el.weekStartSelect.addEventListener("change", () => {
+  this.el.weekStartSelect?.addEventListener("change", () => {
     this.pushUndoSnapshot();
     const val = this.el.weekStartSelect.value === "sun" ? "sun" : "mon";
     try { localStorage.setItem(this.C.STORAGE_KEYS.WEEK_START, val); } catch {}
