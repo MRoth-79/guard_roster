@@ -6,12 +6,15 @@ export function downloadHtmlTable() {
     return;
   }
 
-  // --- הסרת פס הסיכום (summary-bar) ושורת המידע (results-info) מהקובץ המיוצא ---
   const tmp = document.createElement("div");
   tmp.innerHTML = rawResultsHtml;
-  tmp.querySelector(".summary-bar")?.remove();
-  tmp.querySelector(".results-info")?.remove();
-  const resultsHtml = tmp.innerHTML;
+  const scheduleTable = tmp.querySelector("#scheduleTable");
+  if (!scheduleTable) {
+    alert("לא נמצאה טבלת משמרות להורדה.");
+    return;
+  }
+  const titleH3 = Array.from(tmp.querySelectorAll("h3")).find((h) => h.textContent.includes("טבלת משמרות"));
+  const resultsHtml = `${titleH3 ? titleH3.outerHTML : "<h3>טבלת משמרות</h3>"}${scheduleTable.outerHTML}`;
 
   const [y, m, d] = startDate.split("-").map(Number);
   const start = new Date(y, m - 1, d);
