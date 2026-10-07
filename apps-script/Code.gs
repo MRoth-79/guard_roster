@@ -16,7 +16,7 @@ function getCloudPassword_() {
   return pw;
 }
 var PROP_PREFIX = "roster_v1_";
-var CHUNK_SIZE = 8000;
+var MAX_CHUNK_BYTES = 8500;
 
 function jsonOut_(obj) {
   return ContentService
@@ -55,22 +55,31 @@ function clearChunks_(props, baseKey) {
   props.deleteProperty(baseKey + "__savedAt");
 }
 
-function writePayload_(baseKey, payloadObj) {
-  var props = PropertiesService.getScriptProperties();
-  var text = JSON.stringify(payloadObj);
-  clearChunks_(props, baseKey);
-  var n = Math.ceil(text.length / CHUNK_SIZE) || 1;
-  var i;
-  for (i = 0; i < n; i++) {
-    props.setProperty(baseKey + "__" + i, text.substring(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE));
+function splitIntoByteChunks_(text) {
+  var chunks = [];
+  var i = 0;
+  while (i < text.length) {
+    var lo = i + 1;
+    var hi = text.length;
+    var best = lo;
+    while (lo <= hi) {
+      var mid = Math.floor((lo + hi) / 2);
+      var slice = text.substring(i, mid);
+      if (Utilities.newBlob(slice).getBytes().length <= MAX_CHUNK_BYTES) {
+        best = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    if (best <= i) best = i + 1;
+    chunks.push(text.substring(i, best));
+    i = best;
   }
-  props.setProperty(baseKey + "__n", String(n));
-  var savedAt = new Date().toISOString();
-  props.setProperty(baseKey + "__savedAt", savedAt);
-  return savedAt;
+  return chunks;
 }
 
-function readPayload_(baseKey) {
+function readPayloadFromKey_(baseKey) {
   var props = PropertiesService.getScriptProperties();
   var n = Number(props.getProperty(baseKey + "__n") || "0");
   if (!n) return null;
@@ -85,6 +94,61 @@ function readPayload_(baseKey) {
   };
 }
 
+function writeChunks_(props, baseKey, text) {
+  var chunks = splitIntoByteChunks_(text);
+  var i;
+  for (i = 0; i < chunks.length; i++) {
+    props.setProperty(baseKey + "__" + i, chunks[i]);
+  }
+  props.setProperty(baseKey + "__n", String(chunks.length));
+}
+
+function writePayload_(baseKey, payloadObj) {
+  var props = PropertiesService.getScriptProperties();
+  var text = JSON.stringify(payloadObj);
+  var stagingKey = baseKey + "__staging";
+  var savedAt = new Date().toISOString();
+
+  clearChunks_(props, stagingKey);
+  writeChunks_(props, stagingKey, text);
+  props.setProperty(stagingKey + "__savedAt", savedAt);
+
+  var staged = readPayloadFromKey_(stagingKey);
+  if (!staged) {
+    clearChunks_(props, stagingKey);
+    throw new Error("שמירה נכשלה: לא ניתן לאמת את הנתונים לפני החלפה");
+  }
+
+  clearChunks_(props, baseKey);
+  var n = Number(props.getProperty(stagingKey + "__n") || "0");
+  for (var i = 0; i < n; i++) {
+    props.setProperty(baseKey + "__" + i, props.getProperty(stagingKey + "__" + i));
+  }
+  props.setProperty(baseKey + "__n", String(n));
+  props.setProperty(baseKey + "__savedAt", savedAt);
+  clearChunks_(props, stagingKey);
+  return savedAt;
+}
+
+function readPayload_(baseKey) {
+  return readPayloadFromKey_(baseKey);
+}
+
+function snapshotHasAssignments_(snapshot) {
+  var matrix = snapshot && snapshot.excelMatrix;
+  if (!matrix || !matrix.length) return false;
+  var r, c, row, cell;
+  for (r = 0; r < matrix.length; r++) {
+    row = matrix[r];
+    if (!row) continue;
+    for (c = 0; c < row.length; c++) {
+      cell = String(row[c] || "").replace(/\s+/g, " ").trim();
+      if (cell) return true;
+    }
+  }
+  return false;
+}
+
 function handle_(req) {
   if (String(req.password || "") !== getCloudPassword_()) {
     return { ok: false, errorCode: "BAD_PASSWORD", error: "סיסמה שגויה" };
@@ -94,6 +158,9 @@ function handle_(req) {
   if (action === "save") {
     if (!req.snapshot || typeof req.snapshot !== "object") {
       return { ok: false, error: "חסר snapshot לשמירה" };
+    }
+    if (!snapshotHasAssignments_(req.snapshot)) {
+      return { ok: false, error: "אין שמות משובצים לשמירה — סידור ריק לא נשמר" };
     }
     var startDate = req.snapshot.startDate || req.startDate || "";
     var key = weekKey_(startDate);
@@ -134,7 +201,7 @@ function doGet(e) {
     if (req.action) {
       return jsonOut_(handle_(req));
     }
-    return jsonOut_({ ok: true, service: "guard_roster_cloud", version: 1 });
+    return jsonOut_({ ok: true, service: "guard_roster_cloud", version: 2 });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err && err.message ? err.message : err) });
   }
