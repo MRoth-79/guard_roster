@@ -68,18 +68,28 @@ export function parseScheduleText(text) {
   return { days: this.state.expectedDays, data: matrix };
 }
 
-export function serializeMatrixToVerticalText() {
+export function serializeMatrixToVerticalText(matrix) {
+  const source = matrix || this.state.excelMatrix;
   let out = "";
   this.state.expectedDays.forEach((day, dayIndex) => {
     out += `${day}\n`;
     this.C.TIME_SLOTS.forEach((slot, rowIndex) => {
       const time = slot.split("(")[0].trim();
-      const cell = this.state.excelMatrix[rowIndex]?.[dayIndex] || "";
+      const cell = source[rowIndex]?.[dayIndex] || "";
       out += `${time}\t${cell}\n`;
     });
     out += "\n";
   });
   return out.trim();
+}
+
+/** True when at least one cell has an assigned name (not just empty grid structure). */
+export function matrixHasAssignments(matrix) {
+  const source = matrix || this.state.excelMatrix;
+  if (!Array.isArray(source) || !source.length) return false;
+  return source.some((row) =>
+    Array.isArray(row) && row.some((cell) => this.splitCellNames(cell || "").length > 0)
+  );
 }
 
 export function calculateScheduleInsights(scheduleData, days) {
