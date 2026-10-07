@@ -1,0 +1,203 @@
+# חבילת תיקונים — guard_roster
+
+מסמך זה מתאר את כל התיקונים שבוצעו, לפי סדר עדיפות.  
+בכל סעיף: **הבעיה**, **התיקון**, **קבצים ומיקום בקוד**.
+
+---
+
+## כבר הושלם קודם — אבטחת סיסמה
+
+| מה | איפה |
+|----|------|
+| הסיסמה הוסרה מהקוד ומ-README | `core/constants.js`, `main.js`, `README.md` |
+| השרת קורא מ-Script Properties | `apps-script/Code.gs` → `getCloudPassword_()` |
+| הדפדפן שומר סיסמה לטאב בלבד | `features/google-sheet.js` → `CLOUD_PW_SESSION_KEY` |
+
+**ידני (לא ניתן לאמת מהקומיט):** הגדר `CLOUD_PASSWORD` ב-Apps Script → Deploy → New version.
+
+---
+
+## עדיפות 1 — שמירה לענן ואובדן נתונים
+
+### תיקון 1A — שמירה לא דורסת עריכות בטבלה העליונה
+
+**בעיה:** `makeCloudSnapshot` קרא ל-`syncRenderedTableBackToMatrix` שמשך נתונים **ישנים** מהטבלה התחתונה ודרס את `excelMatrix`.
+
+**תיקון:** לפני snapshot — רק סיום עריכה פעילה בתחתונה; **לא** מושכים bottom→matrix.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `features/google-sheet.js` | `makeCloudSnapshot()` | הוסר `syncRenderedTableBackToMatrix`; נוסף `finishCellEditing` לתא בעריכה |
+
+---
+
+### תיקון 1B — שמירת סידור ריק נחסמת
+
+**בעיה:** `serializeMatrixToVerticalText().trim()` לעולם לא ריק (7×6 תאים), ולכן "נקה + שמור" דרס סידור שמור.
+
+**תיקון:** בדיקה שיש לפחות שם משובץ אחד.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `features/analysis.js` | `matrixHasAssignments()` | פונקציה חדשה |
+| `features/google-sheet.js` | `saveToCloud()` | משתמש ב-`matrixHasAssignments(excelMatrix)` |
+| `apps-script/Code.gs` | `snapshotHasAssignments_()` + `handle_` save | דחייה בשרת: "אין שמות משובצים לשמירה" |
+
+---
+
+### תיקון 1C — שמירה אטומית ב-Apps Script
+
+**בעיה:** `clearChunks_` לפני כתיבה — כשל באמצע מחק את הסידור השמור.
+
+**תיקון:** כתיבה ל-staging → אימות → החלפה.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `apps-script/Code.gs` | `writePayload_()` | staging key `__staging`, verify, swap |
+| `apps-script/Code.gs` | `splitIntoByteChunks_()` | חיתוך לפי **בייטים** (מגבלת 9KB), לא תווים |
+
+**Deploy:** העתק `Code.gs` ל-Apps Script → Manage deployments → New version.
+
+---
+
+## עדיפות 2 — הפרדה זמינות / סידור
+
+### תיקון 2A — שתי מטריצות נפרדות
+
+**בעיה:** `excelMatrix` אחד — סידור אוטומטי דרס זמינות; "סדר מחדש" עבד על סידור קודם.
+
+**תיקון:**
+- `availabilityMatrix` — טבלה עליונה (זמינות)
+- `excelMatrix` — סידור (טבלה תחתונה + שמירה לענן)
+
+| קובץ | שינוי |
+|------|-------|
+| `main.js` | `state.availabilityMatrix` |
+| `core/state-sync.js` | שמירה/שחזור של שתי המטריצות |
+| `core/store.js` | `availabilityMatrix` ב-store |
+| `features/grid.js` | טבלה עליונה → `availabilityMatrix` |
+| `ui/excel-grid-view.js` | render מ-`availabilityMatrix` |
+| `features/auto-scheduler.js` | קורא מ-`availabilityMatrix`, כותב ל-`excelMatrix` |
+| `features/grid.js` | `syncRenderedTableBackToMatrix` — **לא** מרender את העליונה |
+| `main.js` | `updateScheduleFromGrid()` → `autoSchedule` מזמינות |
+| `features/shift-requirements.js` | remap שתי המטריצות בשינוי יום תחילת שבוע |
+
+---
+
+### תיקון 2B — תאריך קופץ, שמות נשארים
+
+**בעיה:** בפתיחה מחדש התאריך קופץ לשבוע הבא אבל `excelMatrix` נשאר מהשבוע הישן.
+
+**תיקון:** אם התאריך הוקפץ קדימה — מאפסים שתי המטריצות.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `main.js` | `init()` | `dateBeforeBump !== upcomingIso` → `emptyWeek()` |
+
+---
+
+### תיקון 2C — פוקוס בטבלה העליונה
+
+**בעיה:** הקלדה בטבלה העליונה בנתה מחדש והוציאה פוקוס.
+
+**תיקון:** שמירת `data-r`/`data-c` לפני render והחזרת פוקוס אחרי.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `features/grid.js` | `ExcelGrid.render()` | restore focus |
+| `main.js` | `renderApp()` | re-render עליונה רק כש-`availabilityMatrix` משתנה |
+
+---
+
+### תיקון 2D — שעות הפוכות בטבלה העליונה (RTL)
+
+**בעיה:** `dir="rtl"` על `#excel-grid` הפך את סדר עמודת השעות.
+
+**תיקון:** `dir="ltr"` על טבלת הזמינות (התוכן בעברית נשאר).
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `index.html` | `#excel-grid` | `dir="ltr"` |
+
+---
+
+## עדיפות 3 — כינויים
+
+### תיקון 3 — הסרת כינויים שגויים
+
+**בעיה:** `NAME_ALIASES` הכיל `"ישר"→"ישי"` ו-`"חברתי"→"חברוני"` — אין שומרים בשמות האלה.
+
+**תיקון:** `NAME_ALIASES = {}` (ריק).
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `core/constants.js` | `NAME_ALIASES` | אובייקט ריק |
+
+---
+
+## תיקונים נוספים
+
+### תיקון 4 — 6 משמרות הציגו "✅ עמד"
+
+**בעיה:** `count >= MAX_ALLOWED` (5) הציג ✅ גם ל-6 משמרות.
+
+**תיקון:** `count > MAX_ALLOWED` → `❌ מעל המקסימום`.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `ui/schedule-view.js` | `renderSummaryTable()` | ענף חדש לחריגה |
+
+---
+
+### תיקון 5 — Undo לדרישות שומר 1/2
+
+**בעיה:** `makeSnapshot` לא כלל `shiftRequirements`.
+
+**תיקון:** snapshot + restore מ-localStorage.
+
+| קובץ | שורות | שינוי |
+|------|-------|-------|
+| `core/state-sync.js` | `makeSnapshot()` | `shiftRequirements`, `shiftReqStorageKey` |
+| `core/state-sync.js` | `applySnapshot()` | שחזור ל-localStorage |
+
+---
+
+## סדר פריסה מומלץ
+
+1. **Apps Script** — העתק `apps-script/Code.gs` → Deploy → New version (תיקונים 1B, 1C).
+2. **GitHub Pages** — commit + push (כל שאר הקבצים).
+3. **בדיקה:**
+   - ערוך זמינות למעלה בלי "עדכן" → שמור לענן → לא אמור לדרוס
+   - נסה שמור סידור ריק → נדחה
+   - "סדר מחדש" → קורא מזמינות, לא מסידור קודם
+   - Undo אחרי שינוי דרישות 1/2 → חוזר
+   - 6 משמרות → ❌ מעל המקסימום
+
+---
+
+## קבצים ששונו (רשימה מלאה)
+
+```
+apps-script/Code.gs
+core/constants.js
+core/state-sync.js
+core/store.js
+features/analysis.js
+features/auto-scheduler.js
+features/google-sheet.js
+features/grid.js
+features/shift-requirements.js
+index.html
+main.js
+ui/excel-grid-view.js
+ui/schedule-view.js
+FIXES.md  (מסמך זה)
+```
+
+---
+
+## Cache bust
+
+| קובץ | שינוי |
+|------|-------|
+| `index.html` | `main.js?v=20261007a` |
