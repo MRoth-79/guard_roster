@@ -193,6 +193,7 @@ export async function fetchFromGoogleSheet() {
     if (parsed.error) throw new Error(parsed.error);
 
     this.Store.setState({
+      availabilityMatrix: this.state.availabilityMatrix,
       excelMatrix: this.state.excelMatrix,
       parsedData: parsed,
       startDate: this.el.startDate.value,
@@ -235,8 +236,9 @@ function askCloudPassword() {
 }
 
 function makeCloudSnapshot() {
-  // Capture schedule edits still in the rendered table before snapshot.
-  try { this.syncRenderedTableBackToMatrix?.(); } catch {}
+  // Finish in-progress bottom schedule edit; do not pull stale bottom over excelMatrix.
+  const editing = document.querySelector('#scheduleTable td[data-editing="1"]');
+  if (editing) this.finishCellEditing?.(editing);
   const base = this.makeSnapshot();
   return {
     ...base,
@@ -326,8 +328,8 @@ export async function saveToCloud() {
   }
 
   const snapshot = this.makeCloudSnapshot();
-  if (!this.serializeMatrixToVerticalText?.()?.trim?.()) {
-    this.showStatus("אין סידור לשמירה — סדר משמרות קודם.", "warning");
+  if (!this.matrixHasAssignments?.(this.state.excelMatrix)) {
+    this.showStatus("אין סידור לשמירה — אין שמות משובצים.", "warning");
     return;
   }
 
