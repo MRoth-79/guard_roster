@@ -9,12 +9,17 @@ export function downloadHtmlTable() {
   const tmp = document.createElement("div");
   tmp.innerHTML = rawResultsHtml;
   const scheduleTable = tmp.querySelector("#scheduleTable");
+  const summaryTable = tmp.querySelector(".summary-table");
   if (!scheduleTable) {
     alert("לא נמצאה טבלת משמרות להורדה.");
     return;
   }
-  const titleH3 = Array.from(tmp.querySelectorAll("h3")).find((h) => h.textContent.includes("טבלת משמרות"));
-  const resultsHtml = `${titleH3 ? titleH3.outerHTML : "<h3>טבלת משמרות</h3>"}${scheduleTable.outerHTML}`;
+  const scheduleTitle = Array.from(tmp.querySelectorAll("h3")).find((h) => h.textContent.includes("טבלת משמרות"));
+  const summaryTitle = Array.from(tmp.querySelectorAll("h3")).find((h) => h.textContent.includes("סיכום הופעות"));
+  let resultsHtml = `${scheduleTitle ? scheduleTitle.outerHTML : "<h3>טבלת משמרות</h3>"}${scheduleTable.outerHTML}`;
+  if (summaryTable) {
+    resultsHtml += `${summaryTitle ? summaryTitle.outerHTML : "<h3>סיכום הופעות (רק מי שמשובץ השבוע)</h3>"}${summaryTable.outerHTML}`;
+  }
 
   const [y, m, d] = startDate.split("-").map(Number);
   const start = new Date(y, m - 1, d);
