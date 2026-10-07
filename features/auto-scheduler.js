@@ -15,9 +15,16 @@ function pairHasMinGap(bounds, aDay, aShift, bDay, bShift, minHours) {
 
 export function autoSchedule(options = {}) {
   if (!options.skipUndo) this.pushUndoSnapshot();
-  const parsed = this.parseScheduleText(this.serializeMatrixToVerticalText());
+  if (typeof this.flushActiveAvailabilityCell === "function") this.flushActiveAvailabilityCell();
+  const availability = this.state.availabilityMatrix?.length ? this.state.availabilityMatrix : this.state.excelMatrix;
+  if (!this.matrixHasAssignments(availability)) {
+    this.showStatus("טבלת הזמינות ריקה — אין מה לסדר.", "warning");
+    return;
+  }
+  const parsed = this.parseScheduleText(this.serializeMatrixToVerticalText(availability));
   if (parsed.error) {
     this.Store.setState({ parsedData: parsed });
+    this.showStatus(parsed.error, "error");
     return;
   }
 
@@ -212,8 +219,6 @@ export function autoSchedule(options = {}) {
     });
   });
 
-  this.ExcelGrid.render();
-  this.ExcelGrid.validateAllGridCells();
   const parsedAfter = this.parseScheduleText(this.serializeMatrixToVerticalText());
   this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: parsedAfter, startDate: this.el.startDate.value });
   this.persistFullState();
