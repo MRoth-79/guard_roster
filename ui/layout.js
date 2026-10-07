@@ -37,7 +37,11 @@ export function bindEvents() {
   bindClick(app, app.el.btnExcelClear, () => {
     app.pushUndoSnapshot();
     app.ExcelGrid?.clear?.();
-    app.Store.setState({ excelMatrix: app.state.excelMatrix, parsedData: null });
+    app.Store.setState({
+      excelMatrix: app.state.excelMatrix,
+      availabilityMatrix: app.state.availabilityMatrix,
+      parsedData: null,
+    });
     app.persistFullState();
   });
   bindClick(app, app.el.quickFetchButton, () => app.fetchFromGoogleSheet());
