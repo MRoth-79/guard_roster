@@ -92,8 +92,14 @@ export const NAME_STYLES = {
   "יפתח":   { bg: "linear-gradient(135deg, #ccfbf1, #5eead4)", borderColor: "#0f766e", borderStyle: "solid" },
 };
 
-/** Alternate spellings used in the roster → canonical NAME_STYLES key. Owner must supply real pairs. */
-export const NAME_ALIASES = {};
+/**
+ * Alternate spellings used in the roster → canonical NAME_STYLES key.
+ * OWNER: uncomment and replace with real pairs (single hop only — no alias chains).
+ * Example: // "כינוי_בטבלה": "שם_רשמי",
+ */
+export const NAME_ALIASES = {
+  // "__OWNER_ALIAS_1__": "__OWNER_CANONICAL_1__",
+};
 
 export const COLOR_MAP = Object.fromEntries(
   Object.keys(NAME_STYLES).map((name) => [name, `color-${name}`])
