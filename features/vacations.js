@@ -19,8 +19,8 @@ export function saveVacationsMap(map) {
 
 export function isOnVacation(name, isoDate) {
   const map = this.loadVacationsMap();
-  const clean = this.normalizeKey(name);
-  const entry = map[clean] || map[clean.replace(/\s+/g, "_")] || map[name];
+  const clean = this.canonicalName(name);
+  const entry = map[clean] || map[clean.replace(/\s+/g, "_")] || map[name] || map[this.normalizeKey(name)];
   if (!entry || !entry.from || !entry.to) return false;
   return isoDate >= entry.from && isoDate <= entry.to;
 }
@@ -32,7 +32,10 @@ export function buildWeeklyOnLeaveSet(startDate) {
   const weekDates = this.getIsoDatesForWeek(startDate);
   Object.entries(map).forEach(([name, val]) => {
     if (!val?.from || !val?.to) return;
-    if (weekDates.some((iso) => iso >= val.from && iso <= val.to)) set.add(name);
+    if (weekDates.some((iso) => iso >= val.from && iso <= val.to)) {
+      set.add(name);
+      set.add(this.canonicalName(name));
+    }
   });
   return set;
 }
