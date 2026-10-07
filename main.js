@@ -1,6 +1,5 @@
 import {
   DEFAULT_WEB_APP_URL,
-  CLOUD_PASSWORD,
   STORAGE_KEYS,
   RULES,
   SHEET_URL,
@@ -46,7 +45,6 @@ const Store = createStore();
 const App = {
   C: {
     DEFAULT_WEB_APP_URL,
-    CLOUD_PASSWORD,
     STORAGE_KEYS,
     RULES,
     SHEET_URL,
