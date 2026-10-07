@@ -16,42 +16,6 @@ export function splitCellNames(text, normalizeFn = normalizeKey) {
   ));
 }
 
-export function validateNameAliases(aliases = {}) {
-  for (const [alias, canonical] of Object.entries(aliases)) {
-    const cleanAlias = String(alias || "").trim();
-    const cleanCanonical = String(canonical || "").trim();
-    if (!cleanAlias || !cleanCanonical) {
-      throw new Error(`Invalid alias entry: "${alias}" -> "${canonical}"`);
-    }
-    const visited = new Set([cleanAlias]);
-    let current = cleanCanonical;
-    while (aliases[current]) {
-      if (visited.has(current)) {
-        throw new Error(`Alias cycle detected involving "${alias}"`);
-      }
-      visited.add(current);
-      current = aliases[current];
-    }
-  }
-}
-
-export function canonicalName(name, aliases = {}) {
-  const clean = normalizeKey(name);
-  return aliases[clean] || clean;
-}
-
-export function uniqueCanonicalNames(names, aliases = {}) {
-  const seen = new Set();
-  const out = [];
-  for (const name of names || []) {
-    const key = canonicalName(name, aliases);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(key);
-  }
-  return out;
-}
-
 export function normalizeCellValue(value) {
   return String(value || "").replace(/\u00A0/g, " ").split(/[\n,]+/).map((x) => x.trim()).filter(Boolean).join(", ");
 }

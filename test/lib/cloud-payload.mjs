@@ -95,10 +95,50 @@ function readVersionPayload(props, baseKey, versionId) {
   return readPayloadFromKey(props, versionStorageKey(baseKey, versionId));
 }
 
+function isVersionLoadable(props, baseKey, versionId) {
+  const payload = readVersionPayload(props, baseKey, versionId);
+  return !!(payload?.data);
+}
+
+function listVersionIds(props, baseKey) {
+  const ids = {};
+  const prefix = `${baseKey}__ver_`;
+  for (const key of props.getKeys()) {
+    if (!key.startsWith(prefix)) continue;
+    if (key.includes("__savedAt")) continue;
+    const rest = key.slice(prefix.length);
+    const versionId = rest.split("__")[0];
+    if (versionId) ids[versionId] = true;
+  }
+  if (hasLegacyPayload(props, baseKey)) ids[LEGACY_VERSION] = true;
+  return Object.keys(ids);
+}
+
+function findNewestLoadableVersion(props, baseKey, excludeVersion) {
+  const ids = listVersionIds(props, baseKey);
+  let best = null;
+  let bestAt = "";
+  for (const id of ids) {
+    if (id === excludeVersion) continue;
+    const payload = readVersionPayload(props, baseKey, id);
+    if (!payload?.data) continue;
+    const savedAt = payload.savedAt || "";
+    if (!best || savedAt > bestAt) {
+      best = id;
+      bestAt = savedAt;
+    }
+  }
+  return best;
+}
+
 function cleanupOldVersions(props, baseKey, activeVersion, previousVersion) {
   const keep = { [activeVersion]: true };
-  if (previousVersion) keep[previousVersion] = true;
-  keep[LEGACY_VERSION] = previousVersion === LEGACY_VERSION || activeVersion === LEGACY_VERSION;
+  if (previousVersion && isVersionLoadable(props, baseKey, previousVersion)) {
+    keep[previousVersion] = true;
+  }
+  const backup = findNewestLoadableVersion(props, baseKey, activeVersion);
+  if (backup) keep[backup] = true;
+  keep[LEGACY_VERSION] = previousVersion === LEGACY_VERSION || activeVersion === LEGACY_VERSION || backup === LEGACY_VERSION;
 
   for (const key of props.getKeys()) {
     const prefix = `${baseKey}__ver_`;
@@ -138,12 +178,7 @@ export function writePayload(props, baseKey, payloadObj, options = {}) {
     throw new Error("save validation failed");
   }
 
-  let previousVersion = null;
-  if (manifest?.activeVersion) {
-    previousVersion = manifest.activeVersion;
-  } else if (hasLegacyPayload(props, baseKey)) {
-    previousVersion = LEGACY_VERSION;
-  }
+  const previousVersion = findNewestLoadableVersion(props, baseKey, newVersion);
 
   if (options.failBeforeManifest) {
     throw new Error("Injected failure before manifest commit");
@@ -170,6 +205,10 @@ export function readPayload(props, baseKey) {
     }
   }
   return readPayloadFromKey(props, baseKey);
+}
+
+export function readManifestForTest(props, baseKey) {
+  return readManifest(props, baseKey);
 }
 
 export function writeLegacyPayload(props, baseKey, payloadObj, savedAt = new Date().toISOString()) {
