@@ -438,18 +438,23 @@ table{width:100%;border-collapse:separate;border-spacing:0}
     </section>
   </div>
 
-  <script type="module" src="./main.js?v=20261007h"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      setTimeout(function () {
-        if (document.body.dataset.appReady === "1") return;
+    (function () {
+      var s = document.createElement("script");
+      s.type = "module";
+      s.src = location.protocol === "file:" ? "./app.bundle.js" : "./main.js?v=20261007k";
+      s.addEventListener("error", function () {
+        console.error("guard_roster boot failed");
         var b = document.getElementById("statusBanner");
         if (!b) return;
         b.className = "status-banner error";
         b.style.display = "block";
-        b.textContent = "האפליקציה לא נטענה. הרץ start-local.bat ופתח http://localhost:8765 (לא origin.cursor.com).";
-      }, 2500);
-    });
+        b.textContent = location.protocol === "file:"
+          ? "שגיאת טעינה. הרץ build-standalone.bat ואז פתח שוב את index.html."
+          : "שגיאת טעינה בטעינת האפליקציה — רענן Ctrl+Shift+R.";
+      });
+      document.body.appendChild(s);
+    })();
   </script>
 </body>
 </html>
