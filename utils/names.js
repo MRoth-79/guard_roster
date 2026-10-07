@@ -2,10 +2,41 @@ const PERSON_STYLE_ID = "person-name-styles";
 const WHITE = "#ffffff";
 const BLACK = "#000000";
 
-function resolveCanonicalName(name) {
+export function validateNameAliases(aliases = {}) {
+  for (const [alias, canonical] of Object.entries(aliases)) {
+    const cleanAlias = String(alias || "").trim();
+    const cleanCanonical = String(canonical || "").trim();
+    if (!cleanAlias || !cleanCanonical) {
+      throw new Error(`Invalid alias entry: "${alias}" -> "${canonical}"`);
+    }
+    const visited = new Set([cleanAlias]);
+    let current = cleanCanonical;
+    while (aliases[current]) {
+      if (visited.has(current)) {
+        throw new Error(`Alias cycle detected involving "${alias}"`);
+      }
+      visited.add(current);
+      current = aliases[current];
+    }
+  }
+}
+
+export function canonicalName(name) {
   const clean = this.normalizeKey(name);
   const aliases = this.C.NAME_ALIASES || {};
   return aliases[clean] || clean;
+}
+
+export function uniqueCanonicalNames(names) {
+  const seen = new Set();
+  const out = [];
+  for (const name of names || []) {
+    const key = canonicalName.call(this, name);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
 }
 
 export function allEmployeeNames() {
@@ -26,7 +57,7 @@ export function getScheduledEmployeeNames(allShifts) {
 }
 
 export function nameToColorClass(name) {
-  const canonical = resolveCanonicalName.call(this, name);
+  const canonical = canonicalName.call(this, name);
   if (this.C.COLOR_MAP[canonical]) return this.C.COLOR_MAP[canonical];
   const underscored = canonical.replace(/\s+/g, "_");
   return this.C.COLOR_MAP[underscored] || null;
