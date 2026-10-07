@@ -438,15 +438,17 @@ table{width:100%;border-collapse:separate;border-spacing:0}
     </section>
   </div>
 
-  <script type="module">
-    import("./main.js?v=20261007f").catch((err) => {
-      console.error("guard_roster boot failed", err);
-      const banner = document.getElementById("statusBanner");
-      if (banner) {
-        banner.className = "status-banner error";
-        banner.textContent = `שגיאת טעינה: ${err?.message || err}. רענן עם Ctrl+Shift+R.`;
-        banner.style.display = "block";
-      }
+  <script type="module" src="./main.js?v=20261007h"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      setTimeout(function () {
+        if (document.body.dataset.appReady === "1") return;
+        var b = document.getElementById("statusBanner");
+        if (!b) return;
+        b.className = "status-banner error";
+        b.style.display = "block";
+        b.textContent = "האפליקציה לא נטענה. הרץ start-local.bat ופתח http://localhost:8765 (לא origin.cursor.com).";
+      }, 2500);
     });
   </script>
 </body>
