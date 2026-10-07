@@ -147,11 +147,56 @@ function readVersionPayload_(props, baseKey, versionId) {
   return readPayloadFromKey_(versionStorageKey_(baseKey, versionId));
 }
 
+function isVersionLoadable_(props, baseKey, versionId) {
+  var payload = readVersionPayload_(props, baseKey, versionId);
+  return !!(payload && payload.data);
+}
+
+function listVersionIds_(props, baseKey) {
+  var ids = {};
+  var prefix = baseKey + "__ver_";
+  var all = props.getKeys();
+  var i;
+  for (i = 0; i < all.length; i++) {
+    var key = all[i];
+    if (key.indexOf(prefix) !== 0) continue;
+    if (key.indexOf("__savedAt") >= 0) continue;
+    var rest = key.slice(prefix.length);
+    var versionId = rest.split("__")[0];
+    if (versionId) ids[versionId] = true;
+  }
+  if (hasLegacyPayload_(props, baseKey)) ids[LEGACY_VERSION] = true;
+  return Object.keys(ids);
+}
+
+function findNewestLoadableVersion_(props, baseKey, excludeVersion) {
+  var ids = listVersionIds_(props, baseKey);
+  var best = null;
+  var bestAt = "";
+  var i;
+  for (i = 0; i < ids.length; i++) {
+    var id = ids[i];
+    if (id === excludeVersion) continue;
+    var payload = readVersionPayload_(props, baseKey, id);
+    if (!payload || !payload.data) continue;
+    var savedAt = payload.savedAt || "";
+    if (!best || savedAt > bestAt) {
+      best = id;
+      bestAt = savedAt;
+    }
+  }
+  return best;
+}
+
 function cleanupOldVersions_(props, baseKey, activeVersion, previousVersion) {
   var keep = {};
   keep[activeVersion] = true;
-  if (previousVersion) keep[previousVersion] = true;
-  keep[LEGACY_VERSION] = previousVersion === LEGACY_VERSION || activeVersion === LEGACY_VERSION;
+  if (previousVersion && isVersionLoadable_(props, baseKey, previousVersion)) {
+    keep[previousVersion] = true;
+  }
+  var backup = findNewestLoadableVersion_(props, baseKey, activeVersion);
+  if (backup) keep[backup] = true;
+  keep[LEGACY_VERSION] = previousVersion === LEGACY_VERSION || activeVersion === LEGACY_VERSION || backup === LEGACY_VERSION;
 
   var all = props.getKeys();
   var prefix = baseKey + "__ver_";
@@ -187,12 +232,7 @@ function writePayload_(baseKey, payloadObj) {
       throw new Error("שמירה נכשלה: לא ניתן לאמת את הנתונים לפני פרסום");
     }
 
-    var previousVersion = null;
-    if (manifest && manifest.activeVersion) {
-      previousVersion = manifest.activeVersion;
-    } else if (hasLegacyPayload_(props, baseKey)) {
-      previousVersion = LEGACY_VERSION;
-    }
+    var previousVersion = findNewestLoadableVersion_(props, baseKey, newVersion);
 
     writeManifest_(props, baseKey, {
       activeVersion: newVersion,
