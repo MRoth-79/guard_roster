@@ -1,4 +1,4 @@
-import { renderExcelGrid } from "../ui/excel-grid-view.js?v=20261007e";
+import { renderExcelGrid } from "../ui/excel-grid-view.js";
 
 function emptyMatrix(app) {
   return app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
