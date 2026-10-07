@@ -215,14 +215,23 @@ export async function fetchFromGoogleSheet() {
 
 // --- Cloud save/load (kept in this file so Pages never 404s a new module) ---
 
+const CLOUD_PW_SESSION_KEY = "guardRosterCloudPw";
+
 function askCloudPassword() {
+  // Kept only for this browser tab (sessionStorage); never saved in the repo or localStorage.
+  let cached = "";
+  try { cached = sessionStorage.getItem(CLOUD_PW_SESSION_KEY) || ""; } catch {}
+  if (cached) return cached;
+
   const entered = window.prompt("הכנס סיסמה לפעולת ענן:");
   if (entered === null) return null; // cancelled
-  if (String(entered) !== String(this.C.CLOUD_PASSWORD)) {
-    this.showStatus("סיסמה שגויה.", "error");
+  const pw = String(entered).trim();
+  if (!pw) {
+    this.showStatus("נדרשת סיסמה.", "error");
     return false;
   }
-  return String(entered);
+  try { sessionStorage.setItem(CLOUD_PW_SESSION_KEY, pw); } catch {}
+  return pw;
 }
 
 function makeCloudSnapshot() {
@@ -297,6 +306,10 @@ async function postToCloud(payload) {
     throw new Error(`תשובת שרת לא תקינה (${resp.status}). ודא שפריסת ה-Apps Script מעודכנת ל-Anyone.`);
   }
   if (!data?.ok) {
+    if (data?.errorCode === "BAD_PASSWORD") {
+      try { sessionStorage.removeItem(CLOUD_PW_SESSION_KEY); } catch {}
+      throw new Error("סיסמה שגויה — נסה שוב");
+    }
     throw new Error(data?.error || "שגיאת ענן");
   }
   return data;
