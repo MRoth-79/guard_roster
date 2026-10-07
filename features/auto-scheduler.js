@@ -31,7 +31,7 @@ export function autoSchedule(options = {}) {
   const mode = this.el.autoMode?.value || "balanced";
   const priorityGuards = this.getPriorityGuardSet();
   const weeklyOnLeave = this.buildWeeklyOnLeaveSet(this.el.startDate.value);
-  const allEmployees = this.allEmployeeNames().map((n) => this.normalizeKey(n));
+  const allEmployees = this.allEmployeeNames().map((n) => this.canonicalName(n));
   const I = this.C.SHIFT_INDEX;
   const minGap = Number(this.C.RULES.MIN_REST_HOURS ?? 8);
   const bounds = this.C.SHIFT_HOUR_BOUNDS;
@@ -49,7 +49,7 @@ export function autoSchedule(options = {}) {
   });
 
   const isOnLeaveThisWeek = (name) => {
-    const clean = this.normalizeKey(name);
+    const clean = this.canonicalName(name);
     return weeklyOnLeave.has(clean) || weeklyOnLeave.has(clean.replace(/\s+/g, "_"));
   };
 
@@ -59,8 +59,7 @@ export function autoSchedule(options = {}) {
 
   parsed.data.forEach((row, shiftIdx) => {
     dayOrderIndices.forEach((dayIdx) => {
-      const available = this.splitCellNames(row[dayIdx] || "")
-        .map((name) => this.normalizeKey(name))
+      const available = this.uniqueCanonicalNames(this.splitCellNames(row[dayIdx] || ""))
         .filter((name) => name && !isOnLeaveThisWeek(name));
       availabilityMap[dayIdx] ||= {};
       availabilityMap[dayIdx][shiftIdx] = new Set(available);
@@ -85,7 +84,7 @@ export function autoSchedule(options = {}) {
   };
 
   const alreadyAssignedThatDay = (name, dayIdx) => {
-    const clean = this.normalizeKey(name);
+    const clean = this.canonicalName(name);
     return (assignmentsByName[clean] || []).some((a) => a.dayIdx === dayIdx);
   };
 
@@ -93,9 +92,9 @@ export function autoSchedule(options = {}) {
   const maxNightsHard = mode === "strict" ? maxNightsSoft : maxNightsSoft + 1;
 
   const isLegalAssignment = (name, dayIdx, shiftIdx) => {
-    const clean = this.normalizeKey(name);
+    const clean = this.canonicalName(name);
     if (isOnLeaveThisWeek(clean)) return false;
-    if (newSchedule[shiftIdx][dayIdx].includes(clean)) return false;
+    if (newSchedule[shiftIdx][dayIdx].some((assigned) => this.canonicalName(assigned) === clean)) return false;
     // Auto: at most one shift per person per day. Manual edits may still add a second.
     if (alreadyAssignedThatDay(clean, dayIdx)) return false;
     if ((employeeShiftCount[clean] || 0) >= this.C.RULES.MAX_ALLOWED) return false;
@@ -105,7 +104,7 @@ export function autoSchedule(options = {}) {
   };
 
   const assign = (name, dayIdx, shiftIdx) => {
-    const clean = this.normalizeKey(name);
+    const clean = this.canonicalName(name);
     newSchedule[shiftIdx][dayIdx].push(clean);
     employeeShiftCount[clean] = (employeeShiftCount[clean] || 0) + 1;
     assignmentsByName[clean] ||= [];
@@ -116,7 +115,7 @@ export function autoSchedule(options = {}) {
   };
 
   const unassign = (name, dayIdx, shiftIdx) => {
-    const clean = this.normalizeKey(name);
+    const clean = this.canonicalName(name);
     const row = newSchedule[shiftIdx][dayIdx];
     const at = row.indexOf(clean);
     if (at >= 0) row.splice(at, 1);
@@ -137,7 +136,7 @@ export function autoSchedule(options = {}) {
   });
 
   const candidateScore = (name, shiftIdx) => {
-    const clean = this.normalizeKey(name);
+    const clean = this.canonicalName(name);
     const shifts = employeeShiftCount[clean] || 0;
     const nights = night2to6Count[clean] || 0;
     const priority = priorityGuards.has(clean) ? 1 : 0;
@@ -162,7 +161,7 @@ export function autoSchedule(options = {}) {
         if (!baseCandidates.length) break;
 
         const primary = baseCandidates.filter((name) => {
-          const clean = this.normalizeKey(name);
+          const clean = this.canonicalName(name);
           const cap = (mode === "priority" && priorityGuards.has(clean)) ? this.C.RULES.MAX_ALLOWED : roundTarget;
           if ((employeeShiftCount[clean] || 0) >= cap) return false;
           if (!isLegalAssignment(clean, dayIndex, shiftIndex)) return false;
@@ -171,7 +170,7 @@ export function autoSchedule(options = {}) {
           return true;
         });
         const fallback = baseCandidates.filter((name) => {
-          const clean = this.normalizeKey(name);
+          const clean = this.canonicalName(name);
           return (employeeShiftCount[clean] || 0) < this.C.RULES.MAX_ALLOWED && isLegalAssignment(clean, dayIndex, shiftIndex);
         });
         const pool = (primary.length ? primary : fallback).sort((a, b) => {
