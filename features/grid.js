@@ -1,10 +1,31 @@
 import { renderExcelGrid } from "../ui/excel-grid-view.js";
 
+function emptyMatrix(app) {
+  return app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
+}
+
+function ensureAvailabilityMatrix(app) {
+  if (!Array.isArray(app.state.availabilityMatrix) || app.state.availabilityMatrix.length !== app.C.TIME_SLOTS.length) {
+    app.state.availabilityMatrix = emptyMatrix(app);
+  }
+}
+
+export function flushActiveAvailabilityCell(app) {
+  const active = document.activeElement?.closest?.("#excel-grid td.cell");
+  if (!active) return;
+  const r = Number(active.dataset.r);
+  const c = Number(active.dataset.c);
+  if (!Number.isInteger(r) || !Number.isInteger(c)) return;
+  ensureAvailabilityMatrix(app);
+  app.state.availabilityMatrix[r][c] = app.ExcelGrid.normalizeCellValue(active.innerText);
+}
+
 export function createExcelGrid(app) {
   return {
     init() {
+      ensureAvailabilityMatrix(app);
       if (!app.state.excelMatrix.length) {
-        app.state.excelMatrix = app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
+        app.state.excelMatrix = emptyMatrix(app);
       }
       this.render();
       const wrapper = app.el["excel-grid"].parentElement;
@@ -27,7 +48,7 @@ export function createExcelGrid(app) {
             app.pushUndoSnapshot();
           }
           this.handlePaste(e);
-          app.Store.setState({ excelMatrix: app.state.excelMatrix });
+          app.Store.setState({ availabilityMatrix: app.state.availabilityMatrix });
           app.persistFullState();
         });
         wrapper.addEventListener("input", (e) => {
@@ -35,16 +56,27 @@ export function createExcelGrid(app) {
           if (!cell) return;
           const r = Number(cell.dataset.r);
           const c = Number(cell.dataset.c);
-          app.state.excelMatrix[r][c] = this.normalizeCellValue(cell.innerText);
+          ensureAvailabilityMatrix(app);
+          app.state.availabilityMatrix[r][c] = this.normalizeCellValue(cell.innerText);
           this.validateCellElement(cell);
-          app.Store.setState({ excelMatrix: app.state.excelMatrix });
+          app.Store.setState({ availabilityMatrix: app.state.availabilityMatrix });
           app.persistFullState();
         });
       }
     },
 
     render() {
+      const active = document.activeElement?.closest?.("#excel-grid td.cell");
+      const focusR = active?.dataset?.r;
+      const focusC = active?.dataset?.c;
       renderExcelGrid(app);
+      if (focusR != null && focusC != null) {
+        const cell = document.querySelector(`#excel-grid td.cell[data-r="${focusR}"][data-c="${focusC}"]`);
+        if (cell) {
+          cell.focus();
+          app.placeCaretAtEnd(cell);
+        }
+      }
       this.validateAllGridCells();
     },
 
@@ -60,14 +92,15 @@ export function createExcelGrid(app) {
     },
 
     loadFromText(text) {
+      ensureAvailabilityMatrix(app);
       const parsed = app.parseScheduleText(text);
       if (!parsed.error) {
-        app.state.excelMatrix = parsed.data.map((row) => row.map((cell) => this.normalizeCellValue(cell)));
+        app.state.availabilityMatrix = parsed.data.map((row) => row.map((cell) => this.normalizeCellValue(cell)));
         this.render();
         return;
       }
       const rows = this.parseTableLike(text).filter((row) => row.some(Boolean));
-      app.state.excelMatrix = app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
+      app.state.availabilityMatrix = emptyMatrix(app);
       if (!rows.length) { this.render(); return; }
       const header = rows[0];
       const hasDayHeader = header.some((h) => app.state.expectedDays.some((day) => h.includes(day.replace("יום ", "")) || h.includes(day)));
@@ -79,7 +112,7 @@ export function createExcelGrid(app) {
         const hasTimeInFirstCol = col0 && time.startsWith(col0);
         const startCol = hasTimeInFirstCol ? 1 : 0;
         for (let c = 0; c < app.state.expectedDays.length && startCol + c < line.length; c++) {
-          app.state.excelMatrix[r][c] = this.normalizeCellValue(line[startCol + c] || "");
+          app.state.availabilityMatrix[r][c] = this.normalizeCellValue(line[startCol + c] || "");
         }
       }
       this.render();
@@ -91,6 +124,7 @@ export function createExcelGrid(app) {
       const text = e.clipboardData?.getData("text/plain");
       if (!text) return;
       e.preventDefault();
+      ensureAvailabilityMatrix(app);
       const rows = this.parseTableLike(text);
       const r0 = Number(cell.dataset.r);
       const c0 = Number(cell.dataset.c);
@@ -98,8 +132,8 @@ export function createExcelGrid(app) {
         row.forEach((value, c) => {
           const R = r0 + r;
           const C = c0 + c;
-          if (R < app.state.excelMatrix.length && C < app.state.excelMatrix[0].length) {
-            app.state.excelMatrix[R][C] = this.normalizeCellValue(value);
+          if (R < app.state.availabilityMatrix.length && C < app.state.availabilityMatrix[0].length) {
+            app.state.availabilityMatrix[R][C] = this.normalizeCellValue(value);
           }
         });
       });
@@ -135,7 +169,8 @@ export function createExcelGrid(app) {
     },
 
     clear() {
-      app.state.excelMatrix = app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
+      app.state.availabilityMatrix = emptyMatrix(app);
+      app.state.excelMatrix = emptyMatrix(app);
       this.render();
       app.el.resultsContainer.innerHTML = `<p id="initialMessage">לחץ על «משוך וסדר» או הדבק זמינות לטבלה ולחץ «סדר מחדש».</p>`;
       app.updateSearchHighlights();
@@ -159,8 +194,6 @@ export function syncRenderedTableBackToMatrix() {
     }
   });
 
-  this.ExcelGrid.render();
-  this.ExcelGrid.validateAllGridCells();
   const parsed = this.parseScheduleText(this.serializeMatrixToVerticalText());
   this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: parsed, startDate: this.el.startDate.value });
 }
