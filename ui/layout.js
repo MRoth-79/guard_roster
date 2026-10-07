@@ -12,35 +12,52 @@ export function cacheDom() {
   });
 }
 
-export function bindEvents() {
-  this.el.autoScheduleButton?.addEventListener("click", () => this.autoSchedule());
-  this.el.btnExcelUpdate?.addEventListener("click", () => this.updateScheduleFromGrid());
-  this.el.btnExcelClear?.addEventListener("click", () => {
-    this.pushUndoSnapshot();
-    this.ExcelGrid.clear();
-    this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: null });
-    this.persistFullState();
-  });
-
-  this.el.quickFetchButton?.addEventListener("click", () => this.fetchFromGoogleSheet());
-  this.el.downloadHtmlButton?.addEventListener("click", () => this.downloadHtmlTable());
-  this.el.openSheetButton?.addEventListener("click", () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"));
-  this.el.saveToCloudButton?.addEventListener("click", () => this.saveToCloud());
-  this.el.loadFromCloudButton?.addEventListener("click", () => this.loadFromCloud());
-
-  if (this.el.toggleGuardPickerButton && this.el.guardPickerPanel) {
-    this.el.toggleGuardPickerButton.addEventListener("click", () => {
-      const open = this.el.guardPickerPanel.classList.toggle("open");
-      this.el.toggleGuardPickerButton.setAttribute("aria-expanded", String(open));
-    });
+function runAppAction(app, fn) {
+  try {
+    fn.call(app);
+  } catch (err) {
+    console.error(err);
+    app.showStatus?.(`שגיאה: ${err?.message || err}`, "error");
   }
+}
+
+export function bindEvents() {
+  const buttonActions = {
+    autoScheduleButton: () => this.autoSchedule(),
+    btnExcelUpdate: () => this.updateScheduleFromGrid(),
+    btnExcelClear: () => {
+      this.pushUndoSnapshot();
+      this.ExcelGrid?.clear?.();
+      this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: null });
+      this.persistFullState();
+    },
+    quickFetchButton: () => this.fetchFromGoogleSheet(),
+    downloadHtmlButton: () => this.downloadHtmlTable(),
+    openSheetButton: () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"),
+    saveToCloudButton: () => this.saveToCloud(),
+    loadFromCloudButton: () => this.loadFromCloud(),
+    toggleGuardPickerButton: () => {
+      if (!this.el.guardPickerPanel) return;
+      const open = this.el.guardPickerPanel.classList.toggle("open");
+      this.el.toggleGuardPickerButton?.setAttribute("aria-expanded", String(open));
+    },
+    toggleUrlButton: () => {
+      if (!this.el.urlInputWrap) return;
+      const open = this.el.urlInputWrap.classList.toggle("open");
+      if (this.el.toggleUrlButton) {
+        this.el.toggleUrlButton.textContent = open ? "🔗 סגור URL" : "🔗 URL";
+      }
+    },
+  };
 
   this.el.startDate?.addEventListener("change", () => {
-    this.pushUndoSnapshot();
-    this.updateStartDateLabelBySetting();
-    this.refreshAfterDataChange();
-    this.Store.setState({ startDate: this.el.startDate.value });
-    this.persistFullState();
+    runAppAction(this, () => {
+      this.pushUndoSnapshot();
+      this.updateStartDateLabelBySetting();
+      this.refreshAfterDataChange();
+      this.Store.setState({ startDate: this.el.startDate.value });
+      this.persistFullState();
+    });
   });
 
   document.addEventListener("mouseover", (e) => {
@@ -53,6 +70,14 @@ export function bindEvents() {
   }, { passive: true });
 
   document.addEventListener("click", (e) => {
+    const actionBtn = e.target.closest("button[id]");
+    const action = actionBtn ? buttonActions[actionBtn.id] : null;
+    if (action) {
+      e.preventDefault();
+      runAppAction(this, action);
+      return;
+    }
+
     const bubble = e.target.closest(".person");
     if (bubble) {
       const scheduleCell = bubble.closest('#scheduleTable td[contenteditable="plaintext-only"]');
