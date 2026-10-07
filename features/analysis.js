@@ -109,7 +109,7 @@ export function calculateScheduleInsights(scheduleData, days) {
   scheduleData.forEach((row, rowIdx) => {
     row.forEach((cell, colIdx) => {
       const day = days[colIdx];
-      const names = this.splitCellNames(cell || "");
+      const names = this.uniqueCanonicalNames(this.splitCellNames(cell || ""));
 
       names.forEach((name) => {
         allShifts[name] = (allShifts[name] || 0) + 1;
