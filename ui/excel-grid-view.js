@@ -10,7 +10,7 @@ export function renderExcelGrid(app) {
     const time = slot.split("(")[0].trim();
     html += `<tr><td>${app.escapeHtml(time)}</td>`;
     app.state.expectedDays.forEach((_, c) => {
-      html += `<td class="cell" contenteditable="plaintext-only" data-r="${r}" data-c="${c}">${app.escapeHtml(app.state.excelMatrix[r]?.[c] || "")}</td>`;
+      html += `<td class="cell" contenteditable="plaintext-only" data-r="${r}" data-c="${c}">${app.escapeHtml(app.state.availabilityMatrix[r]?.[c] || "")}</td>`;
     });
     html += "</tr>";
   });
