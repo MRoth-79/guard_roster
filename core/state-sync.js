@@ -69,7 +69,7 @@ export function applySnapshot(snapshot) {
   }
 
   this.ExcelGrid?.render?.();
-  this.state.priorityGuards = (snapshot.priorityGuards || []).map((x) => this.normalizeKey(x)).filter(Boolean);
+  this.state.priorityGuards = (snapshot.priorityGuards || []).map((x) => this.canonicalName(x)).filter(Boolean);
   this.renderGuardButtons();
 
   this.updateStartDateLabelBySetting();
