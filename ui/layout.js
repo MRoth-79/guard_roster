@@ -73,7 +73,6 @@ export function bindEvents() {
     const actionBtn = e.target.closest("button[id]");
     const action = actionBtn ? buttonActions[actionBtn.id] : null;
     if (action) {
-      e.preventDefault();
       runAppAction(this, action);
       return;
     }
