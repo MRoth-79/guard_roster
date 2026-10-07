@@ -1,236 +1,249 @@
-function gapHours(bounds, prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx) {
+export function hoursBetweenShifts(prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx) {
+  const bounds = this.C.SHIFT_HOUR_BOUNDS;
   const prev = bounds[prevShiftIdx];
   const next = bounds[nextShiftIdx];
   if (!prev || !next) return -Infinity;
-  return (Number(nextDayIdx) * 24 + next.start) - (Number(prevDayIdx) * 24 + prev.end);
+  const prevEnd = Number(prevDayIdx) * 24 + prev.end;
+  const nextStart = Number(nextDayIdx) * 24 + next.start;
+  return nextStart - prevEnd;
 }
 
-function pairHasMinGap(bounds, aDay, aShift, bDay, bShift, minHours) {
-  const aFirst = aDay < bDay || (aDay === bDay && aShift <= bShift);
-  const hours = aFirst
-    ? gapHours(bounds, aDay, aShift, bDay, bShift)
-    : gapHours(bounds, bDay, bShift, aDay, aShift);
-  return hours >= minHours;
+export function hasMinRestBetween(prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx, minHours) {
+  const min = Number(minHours ?? this.C.RULES.MIN_REST_HOURS ?? 8);
+  return this.hoursBetweenShifts(prevDayIdx, prevShiftIdx, nextDayIdx, nextShiftIdx) >= min;
 }
 
-export function autoSchedule(options = {}) {
-  if (!options.skipUndo) this.pushUndoSnapshot();
-  if (typeof this.flushActiveAvailabilityCell === "function") this.flushActiveAvailabilityCell();
-  const availability = this.state.availabilityMatrix?.length ? this.state.availabilityMatrix : this.state.excelMatrix;
-  const parsed = this.parseScheduleText(this.serializeMatrixToVerticalText(availability));
-  if (parsed.error) {
-    this.Store.setState({ parsedData: parsed });
-    return;
+export function nextAllowedSameDayAfter(index) {
+  // Derived from MIN_REST_HOURS against same-day later slots.
+  for (let next = index + 1; next < this.C.TIME_SLOTS.length; next++) {
+    if (this.hasMinRestBetween(0, index, 0, next)) return next;
   }
+  return Infinity;
+}
 
-  const mode = this.el.autoMode?.value || "balanced";
-  const priorityGuards = this.getPriorityGuardSet();
-  const weeklyOnLeave = this.buildWeeklyOnLeaveSet(this.el.startDate.value);
-  const allEmployees = this.allEmployeeNames().map((n) => this.normalizeKey(n));
-  const I = this.C.SHIFT_INDEX;
-  const minGap = Number(this.C.RULES.MIN_REST_HOURS ?? 8);
-  const bounds = this.C.SHIFT_HOUR_BOUNDS;
+export function isLessThan8SameDay(prevIdx, curIdx) {
+  return !this.hasMinRestBetween(0, prevIdx, 0, curIdx);
+}
 
-  const employeeShiftCount = {};
-  const night2to6Count = {};
-  const newSchedule = parsed.data.map((row) => row.map(() => []));
-  const availabilityMap = {};
-  const assignmentsByName = {};
+export function parseScheduleText(text) {
+  const lines = String(text || "").split(/\r?\n|\r/);
+  const rawDayData = {};
+  let currentDay = null;
 
-  allEmployees.forEach((name) => {
-    employeeShiftCount[name] = 0;
-    night2to6Count[name] = 0;
-    assignmentsByName[name] = [];
+  lines.forEach((line) => {
+    const cleaned = this.aggressiveClean(line);
+    if (!cleaned) return;
+    const dayMatch = this.state.expectedDays.find((day) => cleaned === day || cleaned.startsWith(day));
+    if (dayMatch) {
+      currentDay = dayMatch;
+      rawDayData[currentDay] = [];
+      return;
+    }
+    if (!currentDay) return;
+    const parts = cleaned.split(/\s{2,}|\t/).map((x) => x.trim()).filter(Boolean);
+    if (!parts.length) return;
+    const timePart = parts[0];
+    const isTime = this.C.TIME_SLOTS.some((slot) => timePart.startsWith(slot.split("(")[0].trim()));
+    if (isTime) rawDayData[currentDay].push(parts.slice(1).join(","));
   });
 
-  const isOnLeaveThisWeek = (name) => {
-    const clean = this.normalizeKey(name);
-    return weeklyOnLeave.has(clean) || weeklyOnLeave.has(clean.replace(/\s+/g, "_"));
+  if (!Object.keys(rawDayData).length) {
+    return { error: "לא נמצאו נתונים תקינים. ודא שהטקסט מתחיל ביום תקין." };
+  }
+
+  const matrix = [];
+  for (let row = 0; row < this.C.TIME_SLOTS.length; row++) {
+    const rowData = [];
+    for (let col = 0; col < this.state.expectedDays.length; col++) {
+      const day = this.state.expectedDays[col];
+      const dayShifts = rawDayData[day];
+      if (!dayShifts) return { error: `שגיאה: היום ${day} חסר.` };
+      if (dayShifts.length !== this.C.TIME_SLOTS.length) {
+        return { error: `שגיאה ביום ${day}: נמצאו ${dayShifts.length} משמרות במקום ${this.C.TIME_SLOTS.length}.` };
+      }
+      rowData.push(dayShifts[row]);
+    }
+    matrix.push(rowData);
+  }
+  return { days: this.state.expectedDays, data: matrix };
+}
+
+export function serializeMatrixToVerticalText(matrix) {
+  const source = matrix || this.state.excelMatrix;
+  let out = "";
+  this.state.expectedDays.forEach((day, dayIndex) => {
+    out += `${day}\n`;
+    this.C.TIME_SLOTS.forEach((slot, rowIndex) => {
+      const time = slot.split("(")[0].trim();
+      const cell = source[rowIndex]?.[dayIndex] || "";
+      out += `${time}\t${cell}\n`;
+    });
+    out += "\n";
+  });
+  return out.trim();
+}
+
+/** True when at least one cell has an assigned name (not just empty grid structure). */
+export function matrixHasAssignments(matrix) {
+  const source = matrix || this.state.excelMatrix;
+  if (!Array.isArray(source) || !source.length) return false;
+  return source.some((row) =>
+    Array.isArray(row) && row.some((cell) => this.splitCellNames(cell || "").length > 0)
+  );
+}
+
+export function calculateScheduleInsights(scheduleData, days) {
+  const I = this.C.SHIFT_INDEX;
+  const allShifts = {};
+  const night2to6Count = {};
+  const exceptions = [];
+  const cellFlags = {};
+  const assignmentsByName = {};
+
+  const markCellFlag = (day, slot, flag) => {
+    const key = `${day}__${slot}`;
+    cellFlags[key] ||= new Set();
+    cellFlags[key].add(flag);
   };
 
-  // Hard days first, but rest checks use absolute dayIdx/shiftIdx (not fill order).
-  const autoDayOrder = ["יום שישי", "יום שבת", "יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי"];
-  const dayOrderIndices = autoDayOrder.map((name) => parsed.days.indexOf(name)).filter((index) => index !== -1);
+  scheduleData.forEach((row, rowIdx) => {
+    row.forEach((cell, colIdx) => {
+      const day = days[colIdx];
+      const names = this.splitCellNames(cell || "");
 
-  parsed.data.forEach((row, shiftIdx) => {
-    dayOrderIndices.forEach((dayIdx) => {
-      const available = this.splitCellNames(row[dayIdx] || "")
-        .map((name) => this.normalizeKey(name))
-        .filter((name) => name && !isOnLeaveThisWeek(name));
-      availabilityMap[dayIdx] ||= {};
-      availabilityMap[dayIdx][shiftIdx] = new Set(available);
-      available.forEach((name) => {
-        if (!assignmentsByName[name]) {
-          assignmentsByName[name] = [];
-          employeeShiftCount[name] = employeeShiftCount[name] || 0;
-          night2to6Count[name] = night2to6Count[name] || 0;
+      names.forEach((name) => {
+        allShifts[name] = (allShifts[name] || 0) + 1;
+        assignmentsByName[name] ||= [];
+        assignmentsByName[name].push({ dayIdx: colIdx, shiftIdx: rowIdx, day, slot: this.C.TIME_SLOTS[rowIdx] });
+
+        if (rowIdx === I.NIGHT_2_6) {
+          night2to6Count[name] = (night2to6Count[name] || 0) + 1;
+          if (night2to6Count[name] > this.C.RULES.MAX_NIGHT_2_6) {
+            exceptions.push({ day: "סיכום שבועי", slot: "02:00 - 06:00", name, msg: `חריגה: ${night2to6Count[name]} לילות (מקסימום ${this.C.RULES.MAX_NIGHT_2_6})` });
+          }
         }
       });
     });
   });
 
-  const respectsGapWithExisting = (name, dayIdx, shiftIdx) => {
-    const existing = assignmentsByName[name] || [];
-    for (const prev of existing) {
-      if (!pairHasMinGap(bounds, prev.dayIdx, prev.shiftIdx, dayIdx, shiftIdx, minGap)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const alreadyAssignedThatDay = (name, dayIdx) => {
-    const clean = this.normalizeKey(name);
-    return (assignmentsByName[clean] || []).some((a) => a.dayIdx === dayIdx);
-  };
-
-  const maxNightsSoft = this.C.RULES.MAX_NIGHT_2_6;
-  const maxNightsHard = mode === "strict" ? maxNightsSoft : maxNightsSoft + 1;
-
-  const isLegalAssignment = (name, dayIdx, shiftIdx) => {
-    const clean = this.normalizeKey(name);
-    if (isOnLeaveThisWeek(clean)) return false;
-    if (newSchedule[shiftIdx][dayIdx].includes(clean)) return false;
-    // Auto: at most one shift per person per day. Manual edits may still add a second.
-    if (alreadyAssignedThatDay(clean, dayIdx)) return false;
-    if ((employeeShiftCount[clean] || 0) >= this.C.RULES.MAX_ALLOWED) return false;
-    if (!respectsGapWithExisting(clean, dayIdx, shiftIdx)) return false;
-    if (shiftIdx === I.NIGHT_2_6 && (night2to6Count[clean] || 0) >= maxNightsHard) return false;
-    return true;
-  };
-
-  const assign = (name, dayIdx, shiftIdx) => {
-    const clean = this.normalizeKey(name);
-    newSchedule[shiftIdx][dayIdx].push(clean);
-    employeeShiftCount[clean] = (employeeShiftCount[clean] || 0) + 1;
-    assignmentsByName[clean] ||= [];
-    assignmentsByName[clean].push({ dayIdx, shiftIdx });
-    if (shiftIdx === I.NIGHT_2_6) {
-      night2to6Count[clean] = (night2to6Count[clean] || 0) + 1;
-    }
-  };
-
-  const unassign = (name, dayIdx, shiftIdx) => {
-    const clean = this.normalizeKey(name);
-    const row = newSchedule[shiftIdx][dayIdx];
-    const at = row.indexOf(clean);
-    if (at >= 0) row.splice(at, 1);
-    assignmentsByName[clean] = (assignmentsByName[clean] || []).filter(
-      (a) => !(a.dayIdx === dayIdx && a.shiftIdx === shiftIdx)
-    );
-    employeeShiftCount[clean] = Math.max(0, (employeeShiftCount[clean] || 0) - 1);
-    if (shiftIdx === I.NIGHT_2_6) {
-      night2to6Count[clean] = Math.max(0, (night2to6Count[clean] || 0) - 1);
-    }
-  };
-
-  const shiftsOrder = [];
-  dayOrderIndices.forEach((dayIndex) => {
-    for (let shiftIndex = 0; shiftIndex < this.C.TIME_SLOTS.length; shiftIndex++) {
-      shiftsOrder.push({ dayIndex, shiftIndex });
-    }
-  });
-
-  const candidateScore = (name, shiftIdx) => {
-    const clean = this.normalizeKey(name);
-    const shifts = employeeShiftCount[clean] || 0;
-    const nights = night2to6Count[clean] || 0;
-    const priority = priorityGuards.has(clean) ? 1 : 0;
-    // Strongly avoid a 3rd 02–06 night once someone already has 2.
-    const thirdNightPenalty = (shiftIdx === I.NIGHT_2_6 && nights >= maxNightsSoft) ? 50 : 0;
-    if (mode === "priority") return [thirdNightPenalty, nights, -priority, shifts, clean];
-    if (mode === "strict") return [thirdNightPenalty, nights, shifts, -priority, clean];
-    return [thirdNightPenalty, nights, shifts, -priority, clean];
-  };
-
-  [1, 2, 3, 4, 5].forEach((roundTarget) => {
-    shiftsOrder.forEach(({ dayIndex, shiftIndex }) => {
-      const required = this.getRequiredPerShift(shiftIndex);
-      const row = newSchedule[shiftIndex][dayIndex];
-      if (row.length >= required) return;
-      const availSet = availabilityMap[dayIndex]?.[shiftIndex];
-      if (!availSet?.size) return;
-
-      while (row.length < required) {
-        const existing = new Set(row);
-        const baseCandidates = Array.from(availSet).filter((name) => !existing.has(name));
-        if (!baseCandidates.length) break;
-
-        const primary = baseCandidates.filter((name) => {
-          const clean = this.normalizeKey(name);
-          const cap = (mode === "priority" && priorityGuards.has(clean)) ? this.C.RULES.MAX_ALLOWED : roundTarget;
-          if ((employeeShiftCount[clean] || 0) >= cap) return false;
-          if (!isLegalAssignment(clean, dayIndex, shiftIndex)) return false;
-          // Prefer not giving a 3rd 02–06 night when alternatives exist.
-          if (shiftIndex === I.NIGHT_2_6 && (night2to6Count[clean] || 0) >= maxNightsSoft) return false;
-          return true;
-        });
-        const fallback = baseCandidates.filter((name) => {
-          const clean = this.normalizeKey(name);
-          return (employeeShiftCount[clean] || 0) < this.C.RULES.MAX_ALLOWED && isLegalAssignment(clean, dayIndex, shiftIndex);
-        });
-        const pool = (primary.length ? primary : fallback).sort((a, b) => {
-          const sa = candidateScore(a, shiftIndex);
-          const sb = candidateScore(b, shiftIndex);
-          for (let i = 0; i < sa.length; i++) {
-            if (sa[i] < sb[i]) return -1;
-            if (sa[i] > sb[i]) return 1;
-          }
-          return 0;
-        });
-        if (!pool.length) break;
-        assign(pool[0], dayIndex, shiftIndex);
-      }
-    });
-  });
-
-  // Safety net: strip same-day doubles and gap violations from auto output.
-  let stripped = 0;
-  Object.keys(assignmentsByName).forEach((name) => {
-    const list = [...(assignmentsByName[name] || [])].sort(
-      (a, b) => (a.dayIdx - b.dayIdx) || (a.shiftIdx - b.shiftIdx)
-    );
-    const seenDays = new Set();
-    for (let i = 0; i < list.length; i++) {
+  // Rest rule: warn on < MIN_REST_HOURS between consecutive assignments.
+  // Manual edits are allowed — we only flag, never block.
+  Object.entries(assignmentsByName).forEach(([name, list]) => {
+    list.sort((a, b) => (a.dayIdx - b.dayIdx) || (a.shiftIdx - b.shiftIdx));
+    for (let i = 1; i < list.length; i++) {
+      const prev = list[i - 1];
       const cur = list[i];
-      const prev = i > 0 ? list[i - 1] : null;
-      const sameDayTwice = seenDays.has(cur.dayIdx);
-      const gapBroken = prev
-        && !pairHasMinGap(bounds, prev.dayIdx, prev.shiftIdx, cur.dayIdx, cur.shiftIdx, minGap);
-      if (sameDayTwice || gapBroken) {
-        unassign(name, cur.dayIdx, cur.shiftIdx);
-        list.splice(i, 1);
-        stripped += 1;
-        i -= 1;
-        continue;
-      }
-      seenDays.add(cur.dayIdx);
+      if (this.hasMinRestBetween(prev.dayIdx, prev.shiftIdx, cur.dayIdx, cur.shiftIdx)) continue;
+      const hours = this.hoursBetweenShifts(prev.dayIdx, prev.shiftIdx, cur.dayIdx, cur.shiftIdx);
+      const sameDay = prev.dayIdx === cur.dayIdx;
+      const msg = sameDay
+        ? `פחות מ־${this.C.RULES.MIN_REST_HOURS} שעות בין משמרות באותו יום (${hours} שע׳)`
+        : `פחות מ־${this.C.RULES.MIN_REST_HOURS} שעות בין משמרות רצופות (${hours} שע׳)`;
+      exceptions.push({ day: cur.day, slot: cur.slot, name, msg });
+      markCellFlag(cur.day, cur.slot.replace(" (Night)", ""), "rest");
     }
   });
 
-  newSchedule.forEach((row, rowIndex) => {
-    row.forEach((names, dayIndex) => {
-      this.state.excelMatrix[rowIndex][dayIndex] = names.join(", ");
+  return { allShifts, night2to6Count, exceptions, cellFlags };
+}
+
+export function buildDashboardSummary(parsed, insights) {
+  let emptyCells = 0;
+  let underfilled = 0;
+  parsed.data.forEach((row, rowIdx) => {
+    row.forEach((cell) => {
+      const names = this.splitCellNames(cell || "");
+      const required = this.getRequiredPerShift(rowIdx);
+      if (names.length === 0) emptyCells += 1;
+      else if (names.length < required) underfilled += 1;
     });
   });
 
-  this.ExcelGrid.render();
-  this.ExcelGrid.validateAllGridCells();
-  const parsedAfter = this.parseScheduleText(this.serializeMatrixToVerticalText());
-  this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: parsedAfter, startDate: this.el.startDate.value });
-  this.persistFullState();
+  const underMinimumEmployees = this.allEmployeeNames().filter((name) => (insights.allShifts[name] || 0) < this.C.RULES.MIN_REQUIRED).length;
+  const nightViolations = this.allEmployeeNames().filter((name) => (insights.night2to6Count[name] || 0) > this.C.RULES.MAX_NIGHT_2_6).length;
+  return { emptyCells, exceptions: insights.exceptions.length, underMinimumEmployees, nightViolations, underfilled };
+}
 
-  const below = allEmployees
-    .map((name) => ({ name, count: employeeShiftCount[name] || 0 }))
-    .filter((entry) => entry.count < this.C.RULES.MIN_REQUIRED);
+export function getCellReasonParts(day, slot, names, required, dayIso, cellFlags) {
+  const reasons = [];
+  const leaveNames = names.filter((name) => this.isOnVacation(name, dayIso));
+  if (names.length && names.length < required) reasons.push(`חסרים ${required - names.length} שומרים (שובצו ${names.length} מתוך ${required}).`);
+  else if (names.length > required) reasons.push(`יש עודף של ${names.length - required} שומרים (נדרשים ${required}).`);
+  if (leaveNames.length) reasons.push(`מסומנים בחופשה/מילואים: ${leaveNames.join(", ")}.`);
+  const key = `${day}__${slot}`;
+  if (cellFlags[key]?.has("rest")) reasons.push("קיימת התנגשות עם כלל ההפרש המינימלי בין משמרות במשבצת הזאת.");
+  return reasons;
+}
 
-  if (stripped) {
-    this.showStatus(`⚠️ הסידור הושלם עם תיקון ${stripped} שיבוצים ששברו הפרש ${minGap} שע׳.`, "warning");
-  } else if (!below.length) {
-    this.showStatus(`✅ הסידור הושלם (${mode}) עם לפחות ${minGap} שע׳ בין משמרות. כולם עם לפחות ${this.C.RULES.MIN_REQUIRED} משמרות.`, "success");
-  } else {
-    this.showStatus(`⚠️ ${below.length} עובדים עדיין מתחת למינימום: ${below.map((x) => `${x.name} (${x.count})`).join(", ")}`, "warning");
-  }
+export function buildFairnessData(parsed, insights) {
+  const isoDates = this.getIsoDatesForWeek(this.el.startDate.value);
+  const employees = this.allEmployeeNames().map((name) => {
+    const count = insights.allShifts[name] || 0;
+    const nights = insights.night2to6Count[name] || 0;
+    const leaveDays = isoDates.filter((iso) => this.isOnVacation(name, iso)).length;
+    const reasons = [];
+    let status = { cls: "ok", text: "מאוזן" };
 
-  this.el.resultsContainer?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+    if (count === 0) {
+      status = { cls: "bad", text: "לא שובץ" };
+      reasons.push(leaveDays ? `לא שובץ השבוע. קיימים ${leaveDays} ימי חופשה/מילואים.` : "לא שובץ בכלל השבוע.");
+    } else {
+      if (count < this.C.RULES.MIN_REQUIRED) {
+        status = { cls: "bad", text: "פחות מדי" };
+        reasons.push(`פחות מהמינימום: ${count} משמרות מתוך ${this.C.RULES.MIN_REQUIRED}.`);
+      } else if (count > this.C.RULES.MAX_ALLOWED) {
+        status = { cls: "bad", text: "יותר מדי" };
+        reasons.push(`מעל המקסימום: ${count} משמרות מתוך ${this.C.RULES.MAX_ALLOWED}.`);
+      } else if (count === this.C.RULES.MIN_REQUIRED) {
+        status = { cls: "warn", text: "בדיוק מינימום" };
+        reasons.push(`שובץ בדיוק על סף המינימום (${count}).`);
+      } else {
+        reasons.push(`כמות המשמרות בטווח תקין (${count}).`);
+      }
+    }
+
+    if (nights > this.C.RULES.MAX_NIGHT_2_6) {
+      status = { cls: "bad", text: "חריגת לילות" };
+      reasons.push(`חריגה בלילות 02–06: שובץ ${nights} פעמים.`);
+    } else if (nights === this.C.RULES.MAX_NIGHT_2_6 && count > 0) {
+      reasons.push(`הגיע לתקרת לילות 02–06 (${nights}).`);
+    }
+
+    if (leaveDays > 0) reasons.push(`חופשה/מילואים ב-${leaveDays} ימים מתוך השבוע.`);
+    if (!reasons.length) reasons.push("אין חריגות או סימונים מיוחדים.");
+    return { name, count, nights, leaveDays, status, reasons };
+  });
+
+  const cells = [];
+  parsed.data.forEach((row, rowIdx) => {
+    row.forEach((cell, colIdx) => {
+      const names = this.splitCellNames(cell || "");
+      const day = parsed.days[colIdx];
+      const slot = this.C.TIME_SLOTS[rowIdx].replace(" (Night)", "");
+      const required = this.getRequiredPerShift(rowIdx);
+      const dayIso = isoDates[colIdx];
+      const reasons = this.getCellReasonParts(day, slot, names, required, dayIso, insights.cellFlags);
+      if (reasons.length) {
+        cells.push({
+          day,
+          date: this.getDatesForWeek(this.el.startDate.value)[colIdx],
+          slot,
+          assigned: names.length ? names.join(", ") : "—",
+          required,
+          reasons,
+        });
+      }
+    });
+  });
+
+  return {
+    employees,
+    cells,
+    summary: {
+      balanced: employees.filter((x) => x.status.cls === "ok").length,
+      attention: employees.filter((x) => x.status.cls !== "ok").length,
+      zeroAssigned: employees.filter((x) => x.count === 0).length,
+      markedCells: cells.length,
+    },
+  };
 }
