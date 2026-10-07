@@ -384,7 +384,11 @@ const App = {
 
 window.ShiftSchedulerApp = App;
 Store.subscribe((state) => App.renderApp(state));
-document.addEventListener("DOMContentLoaded", () => App.init());
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => App.init(), { once: true });
+} else {
+  App.init();
+}
 
 window.GleanBridge = window.GleanBridge || { postMessage() {}, onMessage() {} };
 window.GleanBridge.postMessage({
