@@ -84,7 +84,8 @@ export function renderSummaryTable(allShifts, night2to6Count) {
       const nights = night2to6Count[name] || 0;
       let rowClass = "";
       let status = "";
-      if (count >= this.C.RULES.MAX_ALLOWED) { rowClass = "shifts-5-count"; status = `✅ עמד (${count})`; }
+      if (count > this.C.RULES.MAX_ALLOWED) { rowClass = "night-limit-fail-row"; status = `❌ מעל המקסימום (${count})`; }
+      else if (count >= this.C.RULES.MAX_ALLOWED) { rowClass = "shifts-5-count"; status = `✅ עמד (${count})`; }
       else if (count >= this.C.RULES.MIN_REQUIRED) { rowClass = "shifts-4-count"; status = `✅ עמד (${count})`; }
       else { rowClass = "low-shifts"; status = `❌ פחות מ־${this.C.RULES.MIN_REQUIRED} (${count})`; }
       if (nights > this.C.RULES.MAX_NIGHT_2_6) rowClass += " night-limit-fail-row";
