@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mapCaretOffsetToNormalized, normalizeCellValue } from "./lib/app-helpers.mjs";
+import { mapCaretOffsetToNormalized } from "../utils/dom.js";
+import { normalizeCellValue } from "./lib/app-helpers.mjs";
 
 test("mid-cell typing keeps caret after prefix when text is unchanged", () => {
   const raw = "abcd";

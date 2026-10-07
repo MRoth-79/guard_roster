@@ -7,6 +7,7 @@ import {
   writeLegacyPayload,
   resetVersionCounter,
   splitIntoByteChunks,
+  readManifestForTest,
 } from "./lib/cloud-payload.mjs";
 
 const BASE = "roster_v1_2026-10-05";
@@ -78,4 +79,26 @@ test("multi-chunk non-ASCII payload round-trips unchanged", () => {
   writePayload(props, BASE, payload, { versionId: "unicode-v1" });
   const loaded = readPayload(props, BASE);
   assert.equal(loaded.data.excelMatrix[0][0][0], hebrew);
+});
+
+test("save with corrupt active keeps older good version as recoverable backup", () => {
+  resetVersionCounter();
+  const props = new MockScriptProperties();
+  writePayload(props, BASE, snapshot("A"), { versionId: "v1", savedAt: "2026-10-05T10:00:00.000Z" });
+  writePayload(props, BASE, snapshot("B"), { versionId: "v2", savedAt: "2026-10-05T11:00:00.000Z" });
+
+  props.setProperty(`${BASE}__ver_v2__0`, "{not-json");
+
+  writePayload(props, BASE, snapshot("C"), { versionId: "v3", savedAt: "2026-10-05T12:00:00.000Z" });
+
+  const manifest = readManifestForTest(props, BASE);
+  assert.equal(manifest.activeVersion, "v3");
+  assert.equal(manifest.previousVersion, "v1");
+
+  assert.ok(props.getProperty(`${BASE}__ver_v1__0`), "good version A must survive cleanup");
+
+  props.setProperty(`${BASE}__ver_v3__0`, "{not-json");
+
+  const fallback = readPayload(props, BASE);
+  assert.equal(fallback.data.label, "A");
 });

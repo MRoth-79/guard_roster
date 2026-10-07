@@ -1,31 +1,40 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { normalizeKey, splitCellNames } from "../utils/text.js";
 import {
-  canonicalName,
-  uniqueCanonicalNames,
+  canonicalName as canonicalNameFn,
+  uniqueCanonicalNames as uniqueCanonicalNamesFn,
   validateNameAliases,
-  splitCellNames,
-} from "./lib/app-helpers.mjs";
+} from "../utils/names.js";
 
 const SYNTHETIC_ALIASES = {
   AlexNickname: "Alex",
 };
 
+function makeCtx(aliases = SYNTHETIC_ALIASES) {
+  return {
+    normalizeKey,
+    C: { NAME_ALIASES: aliases },
+  };
+}
+
 test("unknown name remains unchanged", () => {
-  assert.equal(canonicalName("Dana", {}), "Dana");
+  assert.equal(canonicalNameFn.call(makeCtx({}), "Dana"), "Dana");
 });
 
 test("alias resolves to canonical identity", () => {
-  assert.equal(canonicalName("AlexNickname", SYNTHETIC_ALIASES), "Alex");
+  assert.equal(canonicalNameFn.call(makeCtx(), "AlexNickname"), "Alex");
 });
 
 test("duplicate spellings collapse to one person in a shift", () => {
-  const names = uniqueCanonicalNames(splitCellNames("Alex, AlexNickname"), SYNTHETIC_ALIASES);
+  const ctx = makeCtx();
+  const names = uniqueCanonicalNamesFn.call(ctx, splitCellNames.call(ctx, "Alex, AlexNickname"));
   assert.deepEqual(names, ["Alex"]);
 });
 
 test("two different people are not merged without explicit map entry", () => {
-  const names = uniqueCanonicalNames(splitCellNames("Alex, Dana"), SYNTHETIC_ALIASES);
+  const ctx = makeCtx();
+  const names = uniqueCanonicalNamesFn.call(ctx, splitCellNames.call(ctx, "Alex, Dana"));
   assert.deepEqual(names, ["Alex", "Dana"]);
 });
 
