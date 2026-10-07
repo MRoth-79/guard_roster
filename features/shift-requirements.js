@@ -73,13 +73,13 @@ export function buildShiftReqPanel() {
     try { localStorage.setItem(this.C.STORAGE_KEYS.WEEK_START, val); } catch {}
     const oldDays = [...this.state.expectedDays];
     const newDays = this.computeExpectedDays(val);
-    this.state.excelMatrix = (this.state.excelMatrix.length
-      ? this.state.excelMatrix
-      : this.C.TIME_SLOTS.map(() => oldDays.map(() => ""))
-    ).map((row) => newDays.map((day) => {
-      const oldIndex = oldDays.indexOf(day);
-      return oldIndex >= 0 ? (row[oldIndex] || "") : "";
-    }));
+    const remap = (matrix) => (matrix.length ? matrix : this.C.TIME_SLOTS.map(() => oldDays.map(() => "")))
+      .map((row) => newDays.map((day) => {
+        const oldIndex = oldDays.indexOf(day);
+        return oldIndex >= 0 ? (row[oldIndex] || "") : "";
+      }));
+    this.state.excelMatrix = remap(this.state.excelMatrix);
+    this.state.availabilityMatrix = remap(this.state.availabilityMatrix);
     this.state.expectedDays = newDays;
     this.ExcelGrid.init();
     this.updateStartDateLabelBySetting();
