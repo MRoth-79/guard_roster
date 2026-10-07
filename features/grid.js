@@ -1,4 +1,5 @@
 import { renderExcelGrid } from "../ui/excel-grid-view.js";
+import { getCaretTextOffsets, setCaretTextOffsets, mapCaretOffsetToNormalized, placeCaretAtEnd } from "../utils/dom.js";
 
 function emptyMatrix(app) {
   return app.C.TIME_SLOTS.map(() => app.state.expectedDays.map(() => ""));
@@ -53,6 +54,17 @@ export function createExcelGrid(app) {
         });
         wrapper.addEventListener("input", (e) => {
           const cell = e.target.closest("td.cell");
+          if (!cell || e.isComposing) return;
+          const r = Number(cell.dataset.r);
+          const c = Number(cell.dataset.c);
+          ensureAvailabilityMatrix(app);
+          app.state.availabilityMatrix[r][c] = this.normalizeCellValue(cell.innerText);
+          this.validateCellElement(cell);
+          app.Store.setState({ availabilityMatrix: app.state.availabilityMatrix });
+          app.persistFullState();
+        });
+        wrapper.addEventListener("compositionend", (e) => {
+          const cell = e.target.closest("td.cell");
           if (!cell) return;
           const r = Number(cell.dataset.r);
           const c = Number(cell.dataset.c);
@@ -69,12 +81,23 @@ export function createExcelGrid(app) {
       const active = document.activeElement?.closest?.("#excel-grid td.cell");
       const focusR = active?.dataset?.r;
       const focusC = active?.dataset?.c;
+      const rawText = active?.innerText ?? "";
+      const caret = active ? getCaretTextOffsets(active) : null;
+      const normalizedText = active
+        ? (app.state.availabilityMatrix[Number(focusR)]?.[Number(focusC)] ?? this.normalizeCellValue(rawText))
+        : "";
       renderExcelGrid(app);
       if (focusR != null && focusC != null) {
         const cell = document.querySelector(`#excel-grid td.cell[data-r="${focusR}"][data-c="${focusC}"]`);
         if (cell) {
-          cell.focus();
-          app.placeCaretAtEnd(cell);
+          if (caret) {
+            const mappedStart = mapCaretOffsetToNormalized(rawText, normalizedText, caret.start, (value) => this.normalizeCellValue(value));
+            const mappedEnd = mapCaretOffsetToNormalized(rawText, normalizedText, caret.end, (value) => this.normalizeCellValue(value));
+            setCaretTextOffsets(cell, mappedStart, mappedEnd);
+          } else {
+            cell.focus();
+            placeCaretAtEnd(cell);
+          }
         }
       }
       this.validateAllGridCells();
