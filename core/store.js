@@ -2,6 +2,7 @@ export function createStore(initialState = {}) {
   return {
     state: {
       excelMatrix: [],
+      availabilityMatrix: [],
       lockedName: null,
       searchQuery: "",
       parsedData: null,
