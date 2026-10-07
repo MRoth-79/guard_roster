@@ -21,8 +21,8 @@ import { cx, insertPlainTextAtCursor, placeCaretAtEnd } from "./utils/dom.js";
 import { cacheDom, bindEvents } from "./ui/layout.js";
 import { bindToolbar } from "./ui/toolbar.js";
 import { showStatus } from "./ui/status-banner.js";
-import { createExcelGrid, syncRenderedTableBackToMatrix, refreshAfterDataChange } from "./features/grid.js";
-import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js";
+import { createExcelGrid, syncRenderedTableBackToMatrix, refreshAfterDataChange, flushActiveAvailabilityCell as flushActiveAvailabilityCellImpl } from "./features/grid.js";
+import { nextAllowedSameDayAfter, isLessThan8SameDay, hoursBetweenShifts, hasMinRestBetween, parseScheduleText, serializeMatrixToVerticalText, matrixHasAssignments, calculateScheduleInsights, buildDashboardSummary, getCellReasonParts, buildFairnessData } from "./features/analysis.js";
 import { renderFairnessPanel } from "./ui/fairness-panel.js";
 import { renderSummaryBar, renderCellBadges, renderTimeSlotCell, renderScheduleHeader, renderScheduleRow, renderExceptionsTable, renderSummaryTable, renderMainScheduleTable, renderScheduleView } from "./ui/schedule-view.js";
 import { updateHighlights, updateSearchHighlights, focusSearchMatch, navigateSearch } from "./features/search.js";
@@ -61,6 +61,7 @@ const App = {
   state: {
     expectedDays: [],
     excelMatrix: [],
+    availabilityMatrix: [],
     lockedName: null,
     statusTimer: null,
     isRestoring: false,
@@ -102,12 +103,16 @@ const App = {
   placeCaretAtEnd,
   syncRenderedTableBackToMatrix,
   refreshAfterDataChange,
+  flushActiveAvailabilityCell() {
+    flushActiveAvailabilityCellImpl(this);
+  },
   nextAllowedSameDayAfter,
   isLessThan8SameDay,
   hoursBetweenShifts,
   hasMinRestBetween,
   parseScheduleText,
   serializeMatrixToVerticalText,
+  matrixHasAssignments,
   calculateScheduleInsights,
   buildDashboardSummary,
   getCellReasonParts,
@@ -170,25 +175,32 @@ const App = {
         console.error("restoreFullState failed", err);
       }
 
-      // --- FIX: אל תשחזר תאריך תחילת שבוע שכבר עבר ---
       const upcomingIso = this.computeUpcomingWeekStartIso();
+      const dateBeforeBump = this.el.startDate?.value || "";
       if (!this.el.startDate?.value || this.el.startDate.value < upcomingIso) {
         this.el.startDate.value = upcomingIso;
       }
-      // --- END FIX ---
+      const emptyWeek = () => this.C.TIME_SLOTS.map(() => this.state.expectedDays.map(() => ""));
+      if (dateBeforeBump && dateBeforeBump !== this.el.startDate.value) {
+        this.state.excelMatrix = emptyWeek();
+        this.state.availabilityMatrix = emptyWeek();
+      }
 
-      // Ensure grid + days exist even if restore left bad state.
       if (!Array.isArray(this.state.expectedDays) || this.state.expectedDays.length !== 7) {
         this.state.expectedDays = this.computeExpectedDays(this.getWeekStartSetting());
       }
       if (!Array.isArray(this.state.excelMatrix) || this.state.excelMatrix.length !== this.C.TIME_SLOTS.length) {
-        this.state.excelMatrix = this.C.TIME_SLOTS.map(() => this.state.expectedDays.map(() => ""));
+        this.state.excelMatrix = emptyWeek();
+      }
+      if (!Array.isArray(this.state.availabilityMatrix) || this.state.availabilityMatrix.length !== this.C.TIME_SLOTS.length) {
+        this.state.availabilityMatrix = this.state.excelMatrix.map((row) => [...row]);
       }
       this.ExcelGrid.render();
       this.updateStartDateLabelBySetting();
 
       this.Store.setState({
         excelMatrix: this.state.excelMatrix,
+        availabilityMatrix: this.state.availabilityMatrix,
         startDate: this.el.startDate.value,
         lockedName: this.state.lockedName,
         searchQuery: "",
@@ -216,25 +228,15 @@ const App = {
   },
 
   updateScheduleFromGrid() {
-    const active = document.activeElement?.closest?.("#excel-grid td.cell");
-    if (active) {
-      const r = Number(active.dataset.r);
-      const c = Number(active.dataset.c);
-      if (Number.isInteger(r) && Number.isInteger(c)) {
-        this.state.excelMatrix[r][c] = this.ExcelGrid.normalizeCellValue(active.innerText);
-      }
-      active.blur();
-    }
+    this.flushActiveAvailabilityCell();
     this.ExcelGrid.validateAllGridCells();
-    const text = this.serializeMatrixToVerticalText();
-    if (!text.trim()) {
-      this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: null, startDate: this.el.startDate.value });
-      this.persistFullState();
-      this.showStatus("הטבלה ריקה — אין מה לעדכן.", "warning");
+    const hasAvailability = this.matrixHasAssignments(this.state.availabilityMatrix);
+    if (!hasAvailability) {
+      this.showStatus("טבלת הזמינות ריקה — אין מה לסדר.", "warning");
       return;
     }
-    this.handleAnalyze();
-    this.showStatus("הטבלה התחתונה עודכנה לפי השינויים למעלה.", "success");
+    this.autoSchedule({ skipUndo: true });
+    this.showStatus("הסידור התחתון עודכן לפי זמינות מהטבלה העליונה.", "success");
     this.el.resultsContainer?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
   },
 
@@ -322,10 +324,12 @@ const App = {
     if (this.state.isRenderingFromStore) return;
     this.state.isRenderingFromStore = true;
     try {
+      if (Array.isArray(state.availabilityMatrix) && state.availabilityMatrix.length) {
+        this.state.availabilityMatrix = state.availabilityMatrix.map((row) => [...row]);
+        try { this.ExcelGrid?.render?.(); } catch {}
+      }
       if (Array.isArray(state.excelMatrix) && state.excelMatrix.length) {
         this.state.excelMatrix = state.excelMatrix.map((row) => [...row]);
-        // Keep the input grid in sync when store matrix changes.
-        try { this.ExcelGrid?.render?.(); } catch {}
       }
       if (typeof state.lockedName !== "undefined") this.state.lockedName = state.lockedName;
       // Never wipe a visible date with an empty store value.
