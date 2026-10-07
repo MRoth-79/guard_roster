@@ -2,9 +2,6 @@
 export const DEFAULT_WEB_APP_URL =
   "https://script.google.com/macros/s/AKfycbwsqLetDtytZdYuPKEWK5Jb4u8YC82M1GTIwKWh4TZ2ubT2daKFOeRq_OhKH9YsLBaz6g/exec";
 
-/** Shared password for cloud save/load (also enforced in apps-script/Code.gs). */
-export const CLOUD_PASSWORD = "2244";
-
 export const STORAGE_KEYS = {
   WEEK_START: "weekStart",
   SHEET_URL: "googleSheetUrl",
