@@ -7,7 +7,14 @@
  * Then paste the /exec URL into core/constants.js → DEFAULT_WEB_APP_URL
  */
 
-var CLOUD_PASSWORD = "2244";
+// Password lives in Project Settings -> Script Properties (key: CLOUD_PASSWORD), never in code.
+function getCloudPassword_() {
+  var pw = PropertiesService.getScriptProperties().getProperty("CLOUD_PASSWORD");
+  if (!pw) {
+    throw new Error("Server is not configured: CLOUD_PASSWORD script property is missing");
+  }
+  return pw;
+}
 var PROP_PREFIX = "roster_v1_";
 var CHUNK_SIZE = 8000;
 
@@ -79,8 +86,8 @@ function readPayload_(baseKey) {
 }
 
 function handle_(req) {
-  if (String(req.password || "") !== CLOUD_PASSWORD) {
-    return { ok: false, error: "סיסמה שגויה" };
+  if (String(req.password || "") !== getCloudPassword_()) {
+    return { ok: false, errorCode: "BAD_PASSWORD", error: "סיסמה שגויה" };
   }
 
   var action = String(req.action || "").toLowerCase();
