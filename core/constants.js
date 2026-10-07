@@ -93,10 +93,7 @@ export const NAME_STYLES = {
 };
 
 /** Alternate spellings used in the roster → canonical NAME_STYLES key. */
-export const NAME_ALIASES = {
-  "חברתי": "חברוני",
-  "ישר": "ישי",
-};
+export const NAME_ALIASES = {};
 
 export const COLOR_MAP = Object.fromEntries(
   Object.keys(NAME_STYLES).map((name) => [name, `color-${name}`])
