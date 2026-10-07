@@ -21,116 +21,119 @@ function runAppAction(app, fn) {
   }
 }
 
-export function bindEvents() {
-  const buttonActions = {
-    autoScheduleButton: () => this.autoSchedule(),
-    btnExcelUpdate: () => this.updateScheduleFromGrid(),
-    btnExcelClear: () => {
-      this.pushUndoSnapshot();
-      this.ExcelGrid?.clear?.();
-      this.Store.setState({ excelMatrix: this.state.excelMatrix, parsedData: null });
-      this.persistFullState();
-    },
-    quickFetchButton: () => this.fetchFromGoogleSheet(),
-    downloadHtmlButton: () => this.downloadHtmlTable(),
-    openSheetButton: () => window.open(this.C.SHEET_URL, "_blank", "noopener,noreferrer"),
-    saveToCloudButton: () => this.saveToCloud(),
-    loadFromCloudButton: () => this.loadFromCloud(),
-    toggleGuardPickerButton: () => {
-      if (!this.el.guardPickerPanel) return;
-      const open = this.el.guardPickerPanel.classList.toggle("open");
-      this.el.toggleGuardPickerButton?.setAttribute("aria-expanded", String(open));
-    },
-    toggleUrlButton: () => {
-      if (!this.el.urlInputWrap) return;
-      const open = this.el.urlInputWrap.classList.toggle("open");
-      if (this.el.toggleUrlButton) {
-        this.el.toggleUrlButton.textContent = open ? "🔗 סגור URL" : "🔗 URL";
-      }
-    },
-  };
+function bindClick(app, el, fn) {
+  if (!el) return;
+  el.addEventListener("click", (e) => {
+    e.preventDefault();
+    runAppAction(app, fn);
+  });
+}
 
-  this.el.startDate?.addEventListener("change", () => {
-    runAppAction(this, () => {
-      this.pushUndoSnapshot();
-      this.updateStartDateLabelBySetting();
-      this.refreshAfterDataChange();
-      this.Store.setState({ startDate: this.el.startDate.value });
-      this.persistFullState();
+export function bindEvents() {
+  const app = this;
+
+  bindClick(app, app.el.autoScheduleButton, () => app.autoSchedule());
+  bindClick(app, app.el.btnExcelUpdate, () => app.updateScheduleFromGrid());
+  bindClick(app, app.el.btnExcelClear, () => {
+    app.pushUndoSnapshot();
+    app.ExcelGrid?.clear?.();
+    app.Store.setState({ excelMatrix: app.state.excelMatrix, parsedData: null });
+    app.persistFullState();
+  });
+  bindClick(app, app.el.quickFetchButton, () => app.fetchFromGoogleSheet());
+  bindClick(app, app.el.downloadHtmlButton, () => app.downloadHtmlTable());
+  bindClick(app, app.el.openSheetButton, () => window.open(app.C.SHEET_URL, "_blank", "noopener,noreferrer"));
+  bindClick(app, app.el.saveToCloudButton, () => app.saveToCloud());
+  bindClick(app, app.el.loadFromCloudButton, () => app.loadFromCloud());
+  bindClick(app, app.el.toggleGuardPickerButton, () => {
+    if (!app.el.guardPickerPanel) return;
+    const open = app.el.guardPickerPanel.classList.toggle("open");
+    app.el.toggleGuardPickerButton?.setAttribute("aria-expanded", String(open));
+  });
+  bindClick(app, app.el.toggleUrlButton, () => {
+    if (!app.el.urlInputWrap) return;
+    const open = app.el.urlInputWrap.classList.toggle("open");
+    if (app.el.toggleUrlButton) {
+      app.el.toggleUrlButton.textContent = open ? "🔗 סגור URL" : "🔗 URL";
+    }
+  });
+
+  app.el.startDate?.addEventListener("change", () => {
+    runAppAction(app, () => {
+      app.pushUndoSnapshot();
+      app.updateStartDateLabelBySetting();
+      app.refreshAfterDataChange();
+      app.Store.setState({ startDate: app.el.startDate.value });
+      app.persistFullState();
     });
   });
 
   document.addEventListener("mouseover", (e) => {
     const bubble = e.target.closest(".person");
-    if (bubble && !this.state.lockedName) this.updateHighlights(bubble.textContent.trim());
+    if (bubble && !app.state.lockedName) app.updateHighlights(bubble.textContent.trim());
   }, { passive: true });
 
   document.addEventListener("mouseout", (e) => {
-    if (e.target.closest(".person") && !this.state.lockedName) this.updateHighlights(null);
+    if (e.target.closest(".person") && !app.state.lockedName) app.updateHighlights(null);
   }, { passive: true });
 
   document.addEventListener("click", (e) => {
-    const actionBtn = e.target.closest("button[id]");
-    const action = actionBtn ? buttonActions[actionBtn.id] : null;
-    if (action) {
-      runAppAction(this, action);
-      return;
-    }
+    if (e.target.closest("button")) return;
 
     const bubble = e.target.closest(".person");
     if (bubble) {
       const scheduleCell = bubble.closest('#scheduleTable td[contenteditable="plaintext-only"]');
       if (scheduleCell) {
         e.preventDefault();
-        this.startCellEditing(scheduleCell);
+        app.startCellEditing(scheduleCell);
         return;
       }
       const name = bubble.textContent.trim();
-      const newName = this.state.lockedName === name ? null : name;
-      this.state.lockedName = newName;
-      this.Store.setState({ lockedName: newName });
-      this.persistFullState();
+      const newName = app.state.lockedName === name ? null : name;
+      app.state.lockedName = newName;
+      app.Store.setState({ lockedName: newName });
+      app.persistFullState();
       return;
     }
 
     const emptyScheduleCell = e.target.closest('#scheduleTable td[contenteditable="plaintext-only"]');
     if (emptyScheduleCell && !emptyScheduleCell.querySelector(".person")) {
       e.preventDefault();
-      this.startCellEditing(emptyScheduleCell);
+      app.startCellEditing(emptyScheduleCell);
       return;
     }
 
-    const isUi = !!(e.target.closest("button") || e.target.closest("input") || e.target.closest("select") || e.target.closest("a"));
+    const isUi = !!(e.target.closest("input") || e.target.closest("select") || e.target.closest("a"));
     if (!isUi) {
-      this.state.lockedName = null;
-      this.Store.setState({ lockedName: null });
-      this.persistFullState();
+      app.state.lockedName = null;
+      app.Store.setState({ lockedName: null });
+      app.persistFullState();
     }
   }, { passive: false });
 
   document.addEventListener("keydown", (e) => {
     const mod = e.ctrlKey || e.metaKey;
     if (e.key === "Escape") {
-      this.state.lockedName = null;
-      this.Store.setState({ lockedName: null });
-      this.persistFullState();
+      app.state.lockedName = null;
+      app.Store.setState({ lockedName: null });
+      app.persistFullState();
       return;
     }
     if (mod && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
       e.preventDefault();
-      this.undo();
+      app.undo();
       return;
     }
     if (mod && ((e.key === "y" || e.key === "Y") || (e.shiftKey && (e.key === "z" || e.key === "Z")))) {
       e.preventDefault();
-      this.redo();
+      app.redo();
     }
   });
 
   document.addEventListener("beforeinput", (e) => {
     if (e.inputType === "insertParagraph" && e.target?.isContentEditable) {
       e.preventDefault();
-      this.insertPlainTextAtCursor("\n");
+      app.insertPlainTextAtCursor("\n");
     }
   }, { passive: false });
 
@@ -139,7 +142,7 @@ export function bindEvents() {
       const text = e.clipboardData?.getData("text/plain");
       if (!text) return;
       e.preventDefault();
-      this.insertPlainTextAtCursor(text);
+      app.insertPlainTextAtCursor(text);
     }
   }, { passive: false });
 }
