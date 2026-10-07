@@ -3,9 +3,9 @@ export function updateHighlights(name) {
   if (!root) return;
   if (name) root.classList.add("spotlight-active");
   else root.classList.remove("spotlight-active");
-  const locked = name ? this.normalizeKey(name) : "";
+  const locked = name ? this.canonicalName(name) : "";
   root.querySelectorAll(".person").forEach((el) => {
-    el.classList.toggle("highlight-name", !!locked && this.normalizeKey(el.textContent) === locked);
+    el.classList.toggle("highlight-name", !!locked && this.canonicalName(el.textContent) === locked);
   });
 }
 
