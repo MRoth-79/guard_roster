@@ -2,12 +2,15 @@ export function makeSnapshot() {
   return {
     expectedDays: [...this.state.expectedDays],
     excelMatrix: this.state.excelMatrix.map((row) => [...row]),
+    availabilityMatrix: (this.state.availabilityMatrix || []).map((row) => [...row]),
     startDate: this.el.startDate?.value || "",
     googleSheetUrl: this.C.SHEET_URL,
     lockedName: this.state.lockedName,
     weekStart: this.getWeekStartSetting(),
     priorityGuards: Array.from(this.getPriorityGuardSet()),
     shiftReqScopeWeek: !!this.el.shiftReqScopeWeek?.checked,
+    shiftRequirements: this.loadShiftRequirements?.() || {},
+    shiftReqStorageKey: this.getShiftReqStorageKey?.() || "",
     searchQuery: this.Store.getState().searchQuery || "",
     autoMode: this.el.autoMode?.value || "balanced",
     urlOpen: !!this.el.urlInputWrap?.classList.contains("open"),
@@ -25,6 +28,10 @@ export function applySnapshot(snapshot) {
   this.state.excelMatrix = Array.isArray(snapshot.excelMatrix) && snapshot.excelMatrix.length === this.C.TIME_SLOTS.length
     ? snapshot.excelMatrix.map((row) => Array.isArray(row) ? [...row] : this.state.expectedDays.map(() => ""))
     : this.C.TIME_SLOTS.map(() => this.state.expectedDays.map(() => ""));
+
+  this.state.availabilityMatrix = Array.isArray(snapshot.availabilityMatrix) && snapshot.availabilityMatrix.length === this.C.TIME_SLOTS.length
+    ? snapshot.availabilityMatrix.map((row) => Array.isArray(row) ? [...row] : this.state.expectedDays.map(() => ""))
+    : this.state.excelMatrix.map((row) => [...row]);
 
   this.el.startDate.value = snapshot.startDate || this.el.startDate.value || this.computeUpcomingWeekStartIso();
   // Reject non-ISO values that make <input type="date"> appear blank.
@@ -52,6 +59,15 @@ export function applySnapshot(snapshot) {
     try { localStorage.setItem(this.C.STORAGE_KEYS.SHIFT_REQ_SCOPE_WEEK, snapshot.shiftReqScopeWeek ? "1" : "0"); } catch {}
   }
 
+  if (snapshot.shiftRequirements && typeof snapshot.shiftRequirements === "object") {
+    try {
+      localStorage.setItem(
+        snapshot.shiftReqStorageKey || this.getShiftReqStorageKey?.() || "shift_requirements__global",
+        JSON.stringify(snapshot.shiftRequirements)
+      );
+    } catch {}
+  }
+
   this.ExcelGrid?.render?.();
   this.state.priorityGuards = (snapshot.priorityGuards || []).map((x) => this.normalizeKey(x)).filter(Boolean);
   this.renderGuardButtons();
@@ -60,6 +76,7 @@ export function applySnapshot(snapshot) {
   const parsed = this.parseScheduleText(this.serializeMatrixToVerticalText());
   this.Store.setState({
     excelMatrix: this.state.excelMatrix,
+    availabilityMatrix: this.state.availabilityMatrix,
     startDate: this.el.startDate.value,
     lockedName: this.state.lockedName,
     searchQuery: snapshot.searchQuery || "",
