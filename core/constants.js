@@ -92,7 +92,7 @@ export const NAME_STYLES = {
   "יפתח":   { bg: "linear-gradient(135deg, #ccfbf1, #5eead4)", borderColor: "#0f766e", borderStyle: "solid" },
 };
 
-/** Alternate spellings used in the roster → canonical NAME_STYLES key. */
+/** Alternate spellings used in the roster → canonical NAME_STYLES key. Owner must supply real pairs. */
 export const NAME_ALIASES = {};
 
 export const COLOR_MAP = Object.fromEntries(
