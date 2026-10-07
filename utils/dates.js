@@ -32,9 +32,9 @@ export function computeUpcomingWeekStartIso() {
 }
 
 export function initializeData() {
-  this.el.startDate.value = this.computeUpcomingWeekStartIso();
+  if (this.el.startDate) this.el.startDate.value = this.computeUpcomingWeekStartIso();
   // Locked secure sheet — always show/use the constant URL (overwrite stale localStorage).
-  this.el.googleSheetUrl.value = this.C.SHEET_URL;
+  if (this.el.googleSheetUrl) this.el.googleSheetUrl.value = this.C.SHEET_URL;
   try { localStorage.setItem(this.C.STORAGE_KEYS.SHEET_URL, this.C.SHEET_URL); } catch {}
 }
 
