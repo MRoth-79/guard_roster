@@ -73,14 +73,14 @@ html.html-export .schedule-table thead th{position:static!important}
   html.html-export .day-header-name{font-size:.78rem}
   html.html-export .date-text{font-size:.68rem}
   html.html-export .time-slot{font-size:.72rem;padding:6px 2px!important}
-  html.html-export .schedule-table tbody td{min-height:44px;padding:4px 2px}
+  html.html-export .schedule-table tbody td{min-height:40px;padding:3px 2px}
   html.html-export .schedule-table .person,html.html-export .schedule-table .person.person-multiline{
     white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
-    margin:4px auto;padding:6px 3px;font-size:clamp(.62rem,2.2vw + .5rem,.82rem);
-    line-height:1.2;letter-spacing:0;border-radius:10px;
+    margin:2px auto;padding:4px 2px;font-size:clamp(.52rem,1.6vw + .42rem,.72rem);
+    line-height:1.15;letter-spacing:0;border-radius:8px;font-weight:800;
   }
   html.html-export .schedule-table .person.person-multiline{
-    font-size:clamp(.6rem,6.5cqw,.76rem);padding:5px 2px;line-height:1.16;
+    font-size:clamp(.5rem,5.5cqw,.66rem);padding:3px 2px;line-height:1.12;
   }
   html.html-export .schedule-table .person.highlight-name{transform:scale(1.04)}
 }
