@@ -1187,7 +1187,7 @@ function downloadHtmlTable() {
     return;
   }
   const scheduleTitle = Array.from(tmp.querySelectorAll("h3")).find((h) => h.textContent.includes("טבלת משמרות"));
-  let resultsHtml = `${scheduleTitle ? scheduleTitle.outerHTML : "<h3>טבלת משמרות</h3>"}<div class="export-schedule-wrap">${scheduleTable.outerHTML}</div>`;
+  let resultsHtml = `${scheduleTitle ? scheduleTitle.outerHTML : "<h3>טבלת משמרות</h3>"}<div class="export-schedule-wrap"><div class="export-schedule-fit" id="exportScheduleFit"><div class="export-schedule-scale" id="exportScheduleScale">${scheduleTable.outerHTML}</div></div></div>`;
 
   const [y, m, d] = startDate.split("-").map(Number);
   const start = new Date(y, m - 1, d);
@@ -1218,11 +1218,15 @@ html.html-export .export-schedule-wrap{
   border-radius:12px;border:3px solid #111;background:var(--artifact-surface);
   box-shadow:0 0 0 1px #111,var(--artifact-shadow-soft);
 }
+html.html-export .export-schedule-wrap.is-fitted{overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
+html.html-export .export-schedule-fit{width:100%;display:flex;justify-content:center;align-items:flex-start}
+html.html-export .export-schedule-scale{flex-shrink:0;will-change:transform}
 html.html-export .export-schedule-wrap .schedule-table{margin:0;border:none;box-shadow:none}
 html.html-export .schedule-table{overflow:visible}
 html.html-export .schedule-table tbody td{overflow:visible}
 @media (max-width:768px),(hover:none) and (pointer:coarse){
-  html.html-export .schedule-table{min-width:720px}
+  html.html-export .results-shell h3{display:none}
+  html.html-export .hero{margin-bottom:6px;padding:10px 12px;font-size:clamp(.82rem,3.2vw,1rem)}
   html.html-export .schedule-table tbody td{min-height:56px;padding:6px 4px}
   html.html-export .schedule-table .person,html.html-export .schedule-table .person.person-multiline{
     white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
@@ -1235,6 +1239,50 @@ html.html-export .schedule-table tbody td{overflow:visible}
   html.html-export .schedule-table .person.highlight-name{transform:scale(1.05)}
 }
 `;
+
+  const fitScript = `
+    (function () {
+      var wrap = document.querySelector('.export-schedule-wrap');
+      var scaleEl = document.getElementById('exportScheduleScale');
+      var table = document.getElementById('scheduleTable');
+      if (!wrap || !scaleEl || !table) return;
+      var mq = window.matchMedia('(max-width: 768px), (hover: none) and (pointer: coarse)');
+      function applyFit() {
+        scaleEl.style.transform = '';
+        scaleEl.style.width = '';
+        scaleEl.style.height = '';
+        wrap.style.height = '';
+        wrap.classList.remove('is-fitted');
+        if (!mq.matches) return;
+        var tableW = table.offsetWidth;
+        var tableH = table.offsetHeight;
+        if (!tableW || !tableH) return;
+        var rect = wrap.getBoundingClientRect();
+        var pad = 6;
+        var scaleW = (rect.width - pad) / tableW;
+        var scaleH = (rect.height - pad) / tableH;
+        var scale = Math.min(1, scaleW, scaleH);
+        if (!isFinite(scale) || scale <= 0) scale = 1;
+        wrap.classList.add('is-fitted');
+        scaleEl.style.width = tableW + 'px';
+        scaleEl.style.transform = 'scale(' + scale + ')';
+        scaleEl.style.transformOrigin = 'top center';
+        wrap.style.height = Math.ceil(tableH * scale) + 'px';
+      }
+      var timer;
+      function scheduleFit() {
+        clearTimeout(timer);
+        timer = setTimeout(applyFit, 60);
+      }
+      window.addEventListener('resize', scheduleFit);
+      window.addEventListener('orientationchange', scheduleFit);
+      if (mq.addEventListener) mq.addEventListener('change', scheduleFit);
+      else if (mq.addListener) mq.addListener(scheduleFit);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
+      if (typeof ResizeObserver !== 'undefined') new ResizeObserver(scheduleFit).observe(wrap);
+      scheduleFit();
+    })();
+  `;
 
   // --- סקריפט inline עצמאי: משתמש באותן מחלקות של האפליקציה
   //     (spotlight-active על הקונטיינר + highlight-name על ה-bubble)
@@ -1330,6 +1378,7 @@ html.html-export .schedule-table tbody td{overflow:visible}
     window.GleanBridge.postMessage({ actionId: 'export-pdf', type: 'glean-add-menu', metadata: { label: 'Export as PDF', icon: 'export' } });
     window.GleanBridge.onMessage('action', function(data) { if (data.actionId === 'export-pdf') window.print(); });
   <\/script>
+  <script>${fitScript}<\/script>
   <script>${highlightScript}<\/script>
 </body>
 </html>`.trim();
