@@ -294,6 +294,7 @@ const App = {
       if (colorClass) classes.push(colorClass);
       else classes.push("unknown-name");
       if (dayIso && this.isOnVacation(clean, dayIso)) classes.push("on-leave");
+      if ([...clean].length >= 5) classes.push("person-multiline");
       const title = `${this.escapeHtml(clean)} - ${this.escapeHtml(dayLabel)}, ${this.escapeHtml(timeLabel)}`;
       return `<span class="${classes.join(" ")}" title="${title}" role="button" tabindex="0" aria-label="${title}">${this.escapeHtml(clean)}</span>`;
     }).join("");
