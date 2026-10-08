@@ -20,6 +20,11 @@ export function downloadHtmlTable() {
     alert("לא נמצאה טבלת משמרות להורדה.");
     return;
   }
+  tmp.querySelectorAll(".day-header-name").forEach((el) => {
+    const label = this.formatDayHeaderLabel(el.textContent);
+    if (label) el.textContent = label;
+  });
+  tmp.querySelectorAll(".badge.rest").forEach((el) => el.remove());
   const scheduleTitle = Array.from(tmp.querySelectorAll("h3")).find((h) => h.textContent.includes("טבלת משמרות"));
   let resultsHtml = `${scheduleTitle ? scheduleTitle.outerHTML : "<h3>טבלת משמרות</h3>"}<div class="export-schedule-wrap">${scheduleTable.outerHTML}</div>`;
 
@@ -58,6 +63,12 @@ html.html-export .export-schedule-wrap .schedule-table{margin:0;border:none;box-
 html.html-export .schedule-table{overflow:visible!important;min-width:var(--artifact-table-min-width,1100px)}
 html.html-export .schedule-table tbody td{overflow:visible}
 html.html-export .schedule-table thead th{position:static!important}
+html.html-export .badge.rest{display:none!important}
+html.html-export .schedule-table .person{
+  border-radius:999px!important;width:fit-content!important;max-width:100%!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  box-sizing:border-box!important;margin:6px auto!important;
+}
 @media (max-width:768px),(hover:none) and (pointer:coarse){
   html.html-export{
     --artifact-table-min-width:640px;
@@ -73,16 +84,13 @@ html.html-export .schedule-table thead th{position:static!important}
   html.html-export .day-header-name{font-size:.78rem}
   html.html-export .date-text{font-size:.68rem}
   html.html-export .time-slot{font-size:.72rem;padding:6px 2px!important}
-  html.html-export .schedule-table tbody td{min-height:40px;padding:3px 2px}
-  html.html-export .schedule-table .person,html.html-export .schedule-table .person.person-multiline{
-    white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
-    margin:2px auto;padding:4px 2px;font-size:clamp(.52rem,1.6vw + .42rem,.72rem);
-    line-height:1.15;letter-spacing:0;border-radius:8px;font-weight:800;
+  html.html-export .schedule-table .person{
+    font-size:clamp(.72rem,2vw + .55rem,.95rem)!important;padding:7px 12px!important;line-height:1.1!important;
   }
   html.html-export .schedule-table .person.person-multiline{
-    font-size:clamp(.5rem,5.5cqw,.66rem);padding:3px 2px;line-height:1.12;
+    font-size:clamp(.66rem,1.8vw + .5rem,.88rem)!important;padding:6px 10px!important;
   }
-  html.html-export .schedule-table .person.highlight-name{transform:scale(1.04)}
+  html.html-export .schedule-table .person.highlight-name{transform:scale(1.08)}
 }
 `;
 
