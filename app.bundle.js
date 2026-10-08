@@ -1219,10 +1219,20 @@ html.html-export .export-schedule-wrap{
   box-shadow:0 0 0 1px #111,var(--artifact-shadow-soft);
 }
 html.html-export .export-schedule-wrap .schedule-table{margin:0;border:none;box-shadow:none}
-@media (max-width:768px){
+html.html-export .schedule-table{overflow:visible}
+html.html-export .schedule-table tbody td{overflow:visible}
+@media (max-width:768px),(hover:none) and (pointer:coarse){
   html.html-export .schedule-table{min-width:720px}
-  html.html-export .schedule-table th,html.html-export .schedule-table td{padding:6px 4px}
-  html.html-export .person{font-size:clamp(.92em,2.6vw + .65em,1.15em);padding:8px 12px}
+  html.html-export .schedule-table tbody td{min-height:56px;padding:6px 4px}
+  html.html-export .schedule-table .person,html.html-export .schedule-table .person.person-multiline{
+    white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
+    margin:4px auto;padding:7px 4px;font-size:clamp(.68rem,2.4vw + .55rem,.86rem);
+    line-height:1.2;letter-spacing:0;border-radius:12px;
+  }
+  html.html-export .schedule-table .person.person-multiline{
+    font-size:clamp(.66rem,7.5cqw,.8rem);padding:6px 3px;line-height:1.18;
+  }
+  html.html-export .schedule-table .person.highlight-name{transform:scale(1.05)}
 }
 `;
 
@@ -2721,6 +2731,7 @@ const App = {
       if (colorClass) classes.push(colorClass);
       else classes.push("unknown-name");
       if (dayIso && this.isOnVacation(clean, dayIso)) classes.push("on-leave");
+      if ([...clean].length >= 5) classes.push("person-multiline");
       const title = `${this.escapeHtml(clean)} - ${this.escapeHtml(dayLabel)}, ${this.escapeHtml(timeLabel)}`;
       return `<span class="${classes.join(" ")}" title="${title}" role="button" tabindex="0" aria-label="${title}">${this.escapeHtml(clean)}</span>`;
     }).join("");
