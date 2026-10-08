@@ -109,6 +109,16 @@ const COLOR_MAP = Object.fromEntries(
   Object.keys(NAME_STYLES).map((name) => [name, `color-${name}`])
 );
 
+// ----- core/version.js -----
+/**
+ * APP_VERSION (XX.YY.ZZ) — מקור יחיד לגרסת הממשק.
+ * XX — שינוי דור / ארכיטקטורה; YY — יכולות חדשות; ZZ — תיקונים וליטוש.
+ *
+ * v2.1.0 — ~213 commits ב-repo; ייצוא HTML לנייד, בועות pill, «ראשון»,
+ *          הסתרת תג «הפרש 8 שע׳», CI (npm ci), מספר גרסה בכותרת.
+ */
+const APP_VERSION = "2.1.0";
+
 // ----- core/store.js -----
 function createStore(initialState = {}) {
   return {
@@ -2624,10 +2634,16 @@ const App = {
   saveToCloud,
   loadFromCloud,
 
+  applyHeroVersion() {
+    const el = document.getElementById("heroKicker") || document.querySelector(".hero-kicker");
+    if (el) el.textContent = `QRF · GUARD ROSTER · v${APP_VERSION}`;
+  },
+
   init() {
     try {
       validateNameAliases(this.C.NAME_ALIASES);
       this.injectPersonNameStyles();
+      this.applyHeroVersion();
       this.cacheDom();
       this.bindToolbar();
       this.bindEvents();
