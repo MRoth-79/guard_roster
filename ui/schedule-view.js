@@ -16,7 +16,6 @@ export function renderCellBadges(day, slot, names, required, dayIso, cellFlags) 
   else if (names.length > required) badges.push(`<span class="badge extra">עודף</span>`);
   if (names.some((name) => this.isOnVacation(name, dayIso))) badges.push(`<span class="badge leave">חופשה</span>`);
   const key = `${day}__${slot}`;
-  if (cellFlags[key]?.has("rest")) badges.push(`<span class="badge rest">הפרש &lt;8 שע׳</span>`);
   return badges.length ? `<div class="cell-badges">${badges.join("")}</div>` : "";
 }
 
@@ -35,7 +34,7 @@ export function renderScheduleHeader(days, datesForWeek) {
   html += `</tr><tr>`;
   days.forEach((day) => {
     const weekendClass = day.includes("שישי") ? "friday-col" : day.includes("שבת") ? "saturday-col" : "";
-    const dayDisplay = day.replace("יום ", "");
+    const dayDisplay = this.formatDayHeaderLabel(day);
     html += `<th scope="col" class="${weekendClass}"><span class="day-header-name">${this.escapeHtml(dayDisplay)}</span></th>`;
   });
   html += `</tr></thead>`;
