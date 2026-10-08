@@ -51,17 +51,30 @@ html.html-export .export-schedule-wrap{
   flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;
   border-radius:12px;border:3px solid #111;background:var(--artifact-surface);
   box-shadow:0 0 0 1px #111,var(--artifact-shadow-soft);
+  display:flex;flex-direction:column;align-items:center;
 }
-html.html-export .export-schedule-wrap.is-fitted{overflow:hidden;display:flex;justify-content:center;align-items:flex-start}
-html.html-export .export-schedule-fit{width:100%;display:flex;justify-content:center;align-items:flex-start}
-html.html-export .export-schedule-scale{flex-shrink:0;will-change:transform}
+html.html-export .export-schedule-fit{
+  width:100%;flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start;
+}
+html.html-export .export-schedule-scale{display:inline-block;max-width:100%}
 html.html-export .export-schedule-wrap .schedule-table{margin:0;border:none;box-shadow:none}
 html.html-export .schedule-table{overflow:visible}
 html.html-export .schedule-table tbody td{overflow:visible}
 @media (max-width:768px),(hover:none) and (pointer:coarse){
+  html.html-export{
+    --artifact-table-min-width:0;
+    --artifact-time-col-width:52px;
+  }
   html.html-export .results-shell h3{display:none}
   html.html-export .hero{margin-bottom:6px;padding:10px 12px;font-size:clamp(.82rem,3.2vw,1rem)}
-  html.html-export .schedule-table tbody td{min-height:56px;padding:6px 4px}
+  html.html-export .schedule-table{
+    min-width:0!important;width:100%;max-width:100%;table-layout:fixed;
+  }
+  html.html-export .schedule-table thead th{font-size:.72rem;padding:4px 2px}
+  html.html-export .day-header-name{font-size:.78rem}
+  html.html-export .date-text{font-size:.68rem}
+  html.html-export .time-slot{font-size:.72rem;padding:6px 2px!important}
+  html.html-export .schedule-table tbody td{min-height:44px;padding:4px 2px}
   html.html-export .schedule-table .person,html.html-export .schedule-table .person.person-multiline{
     white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
     margin:4px auto;padding:7px 4px;font-size:clamp(.68rem,2.4vw + .55rem,.86rem);
@@ -81,40 +94,54 @@ html.html-export .schedule-table tbody td{overflow:visible}
       var table = document.getElementById('scheduleTable');
       if (!wrap || !scaleEl || !table) return;
       var mq = window.matchMedia('(max-width: 768px), (hover: none) and (pointer: coarse)');
-      function applyFit() {
+      function resetFit() {
+        scaleEl.style.zoom = '';
         scaleEl.style.transform = '';
         scaleEl.style.width = '';
         scaleEl.style.height = '';
-        wrap.style.height = '';
-        wrap.classList.remove('is-fitted');
+        scaleEl.style.marginBottom = '';
+        wrap.style.overflow = '';
+      }
+      function applyFit() {
+        resetFit();
         if (!mq.matches) return;
-        var tableW = table.offsetWidth;
-        var tableH = table.offsetHeight;
+        var tableW = table.offsetWidth || table.scrollWidth;
+        var tableH = table.offsetHeight || table.scrollHeight;
         if (!tableW || !tableH) return;
-        var rect = wrap.getBoundingClientRect();
-        var pad = 6;
-        var scaleW = (rect.width - pad) / tableW;
-        var scaleH = (rect.height - pad) / tableH;
+        var top = wrap.getBoundingClientRect().top;
+        var pad = 10;
+        var availW = Math.max(200, window.innerWidth - pad);
+        var availH = Math.max(200, window.innerHeight - top - pad);
+        var scaleW = availW / tableW;
+        var scaleH = availH / tableH;
         var scale = Math.min(1, scaleW, scaleH);
         if (!isFinite(scale) || scale <= 0) scale = 1;
-        wrap.classList.add('is-fitted');
-        scaleEl.style.width = tableW + 'px';
-        scaleEl.style.transform = 'scale(' + scale + ')';
-        scaleEl.style.transformOrigin = 'top center';
-        wrap.style.height = Math.ceil(tableH * scale) + 'px';
+        scale = Math.max(0.28, scale);
+        document.documentElement.style.setProperty('--export-fit-scale', String(scale));
+        if (typeof scaleEl.style.zoom !== 'undefined') {
+          scaleEl.style.zoom = scale;
+        } else {
+          scaleEl.style.width = tableW + 'px';
+          scaleEl.style.transform = 'scale(' + scale + ')';
+          scaleEl.style.transformOrigin = 'top center';
+          scaleEl.style.marginBottom = (-tableH * (1 - scale)) + 'px';
+        }
+        wrap.style.overflow = scale < 0.999 ? 'hidden' : 'auto';
       }
       var timer;
       function scheduleFit() {
         clearTimeout(timer);
-        timer = setTimeout(applyFit, 60);
+        timer = setTimeout(applyFit, 80);
       }
+      window.addEventListener('load', scheduleFit);
       window.addEventListener('resize', scheduleFit);
-      window.addEventListener('orientationchange', scheduleFit);
+      window.addEventListener('orientationchange', function () { setTimeout(scheduleFit, 200); });
       if (mq.addEventListener) mq.addEventListener('change', scheduleFit);
       else if (mq.addListener) mq.addListener(scheduleFit);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
-      if (typeof ResizeObserver !== 'undefined') new ResizeObserver(scheduleFit).observe(wrap);
       scheduleFit();
+      setTimeout(scheduleFit, 250);
+      setTimeout(scheduleFit, 800);
     })();
   `;
 
