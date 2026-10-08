@@ -14,7 +14,7 @@ import {
 } from "./core/constants.js";
 import { createStore } from "./core/store.js";
 import { makeSnapshot, applySnapshot, persistFullState, restoreFullState } from "./core/state-sync.js";
-import { normalizeKey, splitCellNames, escapeHtml, aggressiveClean } from "./utils/text.js";
+import { normalizeKey, splitCellNames, escapeHtml, aggressiveClean, formatDayHeaderLabel } from "./utils/text.js";
 import { getWeekStartSetting, computeExpectedDays, initializeData, computeUpcomingWeekStartIso, getHebDayNameFromIso, updateStartDateLabelBySetting, getDatesForWeek, getIsoDatesForWeek } from "./utils/dates.js";
 import { allEmployeeNames, getScheduledEmployeeNames, nameToColorClass, injectPersonNameStyles, canonicalName, uniqueCanonicalNames, validateNameAliases } from "./utils/names.js";
 import { cx, insertPlainTextAtCursor, placeCaretAtEnd } from "./utils/dom.js";
@@ -83,6 +83,7 @@ const App = {
   persistFullState,
   restoreFullState,
   normalizeKey,
+  formatDayHeaderLabel,
   splitCellNames,
   escapeHtml,
   aggressiveClean,

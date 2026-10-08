@@ -256,11 +256,10 @@ table{width:100%;border-collapse:separate;border-spacing:0}
 .schedule-table th,.schedule-table td{border:1px solid var(--artifact-border-light);padding:8px 6px;min-height:52px;vertical-align:top}
 .schedule-table tbody td{overflow:visible}
 .schedule-table .person.person-multiline{
-  white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
-  padding:8px 5px;font-size:clamp(.74rem, 4.5cqw, .92rem);line-height:1.22;border-radius:12px;letter-spacing:0;
+  font-size:clamp(1.05em, 1vw + .92em, 1.35em);padding:8px 16px;
 }
 @container (max-width:102px){
-  .schedule-table .person.person-multiline{font-size:clamp(.66rem, 7.5cqw, .8rem);padding:6px 3px;line-height:1.18}
+  .schedule-table .person.person-multiline{font-size:clamp(.95em, 4cqw, 1.15em);padding:7px 12px}
 }
 .schedule-table thead{background:linear-gradient(180deg,#0f766e,#0d9488);color:var(--artifact-accent-text)}
 .schedule-table thead th{position:sticky;top:0;z-index:2;padding:8px 6px;text-align:center}
@@ -344,16 +343,8 @@ table{width:100%;border-collapse:separate;border-spacing:0}
   .fairness-table{min-width:620px}
 }
 @media (max-width:768px),(hover:none) and (pointer:coarse){
-  .schedule-table tbody td{min-height:44px;padding:4px 3px}
-  .schedule-table .person,.schedule-table .person.person-multiline{
-    white-space:normal;overflow:visible;text-overflow:unset;width:100%;max-width:100%;
-    margin:2px auto;padding:4px 2px;font-size:clamp(.52rem, 1.6vw + .42rem, .72rem);
-    line-height:1.15;letter-spacing:0;border-radius:8px;font-weight:800;
-  }
-  .schedule-table .person.person-multiline{
-    font-size:clamp(.5rem, 5.5cqw, .66rem);padding:3px 2px;line-height:1.12;
-  }
-  .schedule-table .person.highlight-name{transform:scale(1.05)}
+  .schedule-table .person{font-size:clamp(.85em, 1.1vw + .72em, 1.15em);padding:8px 14px}
+  .schedule-table .person.person-multiline{font-size:clamp(.78em, 1vw + .65em, 1.05em);padding:7px 12px}
 }
 </style>
 </head>
