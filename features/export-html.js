@@ -82,6 +82,13 @@ html.html-export .export-schedule-wrap .schedule-table{margin:0;border:none;box-
           b.classList.toggle('highlight-name', norm(b.textContent) === name);
         });
       }
+      function clearHighlight() {
+        locked = null;
+        apply(null);
+      }
+      function isPersonTarget(e) {
+        return !!(e.target && e.target.closest && e.target.closest('.person'));
+      }
       table.addEventListener('mouseover', function (e) {
         if (locked) return;
         var b = e.target.closest('.person');
@@ -98,14 +105,33 @@ html.html-export .export-schedule-wrap .schedule-table{margin:0;border:none;box-
       }, { passive: true });
       table.addEventListener('click', function (e) {
         var b = e.target.closest('.person');
-        if (!b) return;
+        if (!b) {
+          clearHighlight();
+          return;
+        }
         var name = norm(b.textContent);
         locked = (locked === name) ? null : name;
         apply(locked);
       });
+      document.addEventListener('click', function (e) {
+        if (isPersonTarget(e)) return;
+        clearHighlight();
+      });
+      var touchTap = { moved: false };
+      document.addEventListener('touchstart', function (e) {
+        touchTap.moved = false;
+      }, { passive: true });
+      document.addEventListener('touchmove', function () {
+        touchTap.moved = true;
+      }, { passive: true });
+      document.addEventListener('touchend', function (e) {
+        if (touchTap.moved) return;
+        if (isPersonTarget(e)) return;
+        clearHighlight();
+      }, { passive: true });
       table.querySelectorAll('.person').forEach(function (b) { b.style.cursor = 'pointer'; });
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { locked = null; apply(null); }
+        if (e.key === 'Escape') clearHighlight();
       });
     })();
   `;
