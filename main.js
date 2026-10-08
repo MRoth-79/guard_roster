@@ -12,6 +12,7 @@ import {
   NAME_STYLES,
   NAME_ALIASES,
 } from "./core/constants.js";
+import { APP_VERSION } from "./core/version.js";
 import { createStore } from "./core/store.js";
 import { makeSnapshot, applySnapshot, persistFullState, restoreFullState } from "./core/state-sync.js";
 import { normalizeKey, splitCellNames, escapeHtml, aggressiveClean, formatDayHeaderLabel } from "./utils/text.js";
@@ -159,10 +160,16 @@ const App = {
   saveToCloud,
   loadFromCloud,
 
+  applyHeroVersion() {
+    const el = document.getElementById("heroKicker") || document.querySelector(".hero-kicker");
+    if (el) el.textContent = `QRF · GUARD ROSTER · v${APP_VERSION}`;
+  },
+
   init() {
     try {
       validateNameAliases(this.C.NAME_ALIASES);
       this.injectPersonNameStyles();
+      this.applyHeroVersion();
       this.cacheDom();
       this.bindToolbar();
       this.bindEvents();
