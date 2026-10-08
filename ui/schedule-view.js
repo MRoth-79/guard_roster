@@ -35,7 +35,7 @@ export function renderScheduleHeader(days, datesForWeek) {
   html += `</tr><tr>`;
   days.forEach((day) => {
     const weekendClass = day.includes("שישי") ? "friday-col" : day.includes("שבת") ? "saturday-col" : "";
-    const dayDisplay = this.getWeekStartSetting() === "mon" && day === "יום ראשון" ? "יום ראשון" : day.replace("יום ", "");
+    const dayDisplay = day.replace("יום ", "");
     html += `<th scope="col" class="${weekendClass}"><span class="day-header-name">${this.escapeHtml(dayDisplay)}</span></th>`;
   });
   html += `</tr></thead>`;
