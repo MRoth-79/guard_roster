@@ -1,3 +1,8 @@
+/** כותרת עמודה: «יום ראשון» → «ראשון» (כמו שאר הימים). */
+export function formatDayHeaderLabel(day) {
+  return normalizeKey(day).replace(/^יום\s+/u, "").trim();
+}
+
 export function normalizeKey(str) {
   return String(str || "")
     .normalize("NFKC")
